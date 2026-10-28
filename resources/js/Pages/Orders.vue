@@ -114,9 +114,7 @@ const salin = async (teks) => {
                                 {{ terbuka === p.id ? 'Sembunyikan' : 'Lihat Kredensial' }}
                             </button>
                             <span v-else class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400">
-                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                </svg>
+                                <Icon icon="heroicons:clock" class="h-3.5 w-3.5" />
                                 Menunggu verifikasi pembayaran
                             </span>
                         </div>

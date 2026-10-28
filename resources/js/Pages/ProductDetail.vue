@@ -55,9 +55,7 @@ const ulasan = [
                         {{ produk.jenis_akun_label }} Akun
                     </span>
                     <span class="inline-flex items-center gap-1">
-                        <svg class="h-4 w-4 text-amber-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
-                        </svg>
+                        <Icon icon="heroicons:star-solid" class="h-4 w-4 text-amber-400" />
                         <span class="font-semibold text-ink">{{ produk.rating }}</span> ({{ produk.jumlah_ulasan }})
                     </span>
                     <span>{{ produk.terjual }} terjual</span>
@@ -92,18 +90,14 @@ const ulasan = [
                         type="button"
                         class="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-brand-600 text-sm font-semibold text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:outline-none"
                     >
-                        <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-                        </svg>
+                        <Icon icon="heroicons:shopping-cart" class="h-4.5 w-4.5" />
                         Beli Sekarang
                     </button>
                     <button
                         type="button"
                         class="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-brand-600 text-sm font-semibold text-brand-600 transition hover:bg-brand-50"
                     >
-                        <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-                        </svg>
+                        <Icon icon="heroicons:shopping-bag" class="h-4.5 w-4.5" />
                         Masukkan Keranjang
                     </button>
                 </div>
@@ -120,9 +114,7 @@ const ulasan = [
                         <span class="text-xs text-slate-400">{{ u.tanggal }}</span>
                     </div>
                     <div class="mt-1 flex gap-0.5" :aria-label="`Rating ${u.rating} dari 5`">
-                        <svg v-for="n in u.rating" :key="n" class="h-3.5 w-3.5 text-amber-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
-                        </svg>
+                        <Icon v-for="n in u.rating" :key="n" icon="heroicons:star-solid" class="h-3.5 w-3.5 text-amber-400" />
                     </div>
                     <p class="mt-2 text-sm leading-6 text-slate-600">{{ u.teks }}</p>
                 </article>

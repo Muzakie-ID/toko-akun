@@ -1,5 +1,6 @@
 import { createInertiaApp } from '@inertiajs/vue3'
 import { createApp, h } from 'vue'
+import { Icon } from '@iconify/vue'
 import '../css/app.css'
 
 createInertiaApp({
@@ -9,6 +10,7 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
+            .component('Icon', Icon)
             .mount(el)
     },
     progress: { color: '#000000', showSpinner: false },

@@ -38,9 +38,7 @@ const jenisFilter = [
                     class="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-brand-900 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
                 >
                     Lihat Semua Produk
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                    </svg>
+                    <Icon icon="heroicons:arrow-right" class="h-4 w-4" />
                 </a>
             </div>
 
@@ -81,27 +79,19 @@ const jenisFilter = [
                     { label: 'Harga', icon: 'M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z' },
                 ]" :key="chip.label" type="button"
                 class="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-slate-200 px-4 text-sm font-medium text-slate-600 transition hover:border-brand-400 hover:text-ink">
-                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" :d="chip.icon" />
-                </svg>
+                <Icon icon="heroicons:squares-2x2" class="h-3.5 w-3.5" />
                 {{ chip.label }}
-                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                </svg>
+                <Icon icon="heroicons:chevron-down" class="h-3.5 w-3.5" />
             </button>
             <button type="button" class="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-slate-200 px-4 text-sm font-medium text-slate-600 transition hover:border-brand-400 hover:text-brand-600">
-                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                </svg>
+                <Icon icon="heroicons:funnel" class="h-3.5 w-3.5" />
                 All Filters
             </button>
             <div class="ml-auto hidden shrink-0 items-center gap-2 sm:flex">
                 <span class="text-sm text-slate-500">Urutkan</span>
                 <button type="button" class="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3.5 text-sm font-medium text-ink">
                     Terpopuler
-                    <svg class="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                    </svg>
+                    <Icon icon="heroicons:chevron-down" class="h-3.5 w-3.5 text-slate-400" />
                 </button>
             </div>
         </div>
@@ -163,9 +153,7 @@ const jenisFilter = [
                     </fieldset>
 
                     <button type="button" class="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 transition hover:border-brand-400 hover:text-ink">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                        </svg>
+                        <Icon icon="heroicons:arrow-path" class="h-4 w-4" />
                         Reset Filter
                     </button>
                 </div>
