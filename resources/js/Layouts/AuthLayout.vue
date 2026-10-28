@@ -25,7 +25,7 @@
         </aside>
 
         <!-- Panel form -->
-        <main class="flex flex-1 items-center justify-center px-4 py-12">
+        <main class="flex flex-1 items-center justify-center bg-slate-50 px-4 py-12">
             <div class="w-full max-w-sm">
                 <slot />
             </div>
