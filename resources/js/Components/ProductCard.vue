@@ -16,9 +16,9 @@ const rupiah = (n) => 'Rp ' + Number(n).toLocaleString('id-ID')
 
 <template>
     <article class="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/60">
-        <!-- Banner -->
-        <div class="relative flex h-[140px] items-center justify-center bg-gradient-to-br from-brand-50 via-brand-100 to-brand-200">
-            <span class="text-5xl font-black text-brand-600/80">{{ product.nama.charAt(0) }}</span>
+        <!-- Banner: warna spesifik per brand (field warna_banner dari data) -->
+        <div class="relative flex h-[140px] items-center justify-center" :style="product.warna_banner ? { background: product.warna_banner } : undefined" :class="product.warna_banner ? '' : 'bg-gradient-to-br from-brand-50 via-brand-100 to-brand-200'">
+            <span class="text-5xl font-black" :style="product.warna_teks ? { color: product.warna_teks } : undefined" :class="product.warna_teks ? '' : 'text-brand-600/80'">{{ product.nama.charAt(0) }}</span>
             <button
                 class="absolute top-3 right-3 rounded-full bg-white/80 p-1.5 text-slate-500 backdrop-blur transition hover:text-rose-500"
                 :aria-label="`Simpan ${product.nama} ke wishlist`"
@@ -57,7 +57,7 @@ const rupiah = (n) => 'Rp ' + Number(n).toLocaleString('id-ID')
                 <div class="flex items-baseline gap-2">
                     <span class="text-lg font-bold text-ink">{{ rupiah(product.harga) }}</span>
                     <span v-if="diskon" class="text-xs text-slate-400 line-through">{{ rupiah(product.harga_asli) }}</span>
-                    <span v-if="diskon" class="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[11px] font-bold text-emerald-700">-{{ diskon }}%</span>
+                    <span v-if="diskon" class="rounded-md bg-rose-100 px-1.5 py-0.5 text-[11px] font-bold text-rose-600">-{{ diskon }}%</span>
                 </div>
 
                 <!-- Tombol Beli -->

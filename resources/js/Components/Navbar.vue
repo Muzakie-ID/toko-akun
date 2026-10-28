@@ -19,7 +19,10 @@ const navLinks = [
         <nav class="mx-auto flex h-[72px] max-w-[1320px] items-center gap-6 px-4 lg:px-15">
             <!-- Logo -->
             <Link href="/" class="flex shrink-0 items-center gap-2">
-                <span class="flex h-6 w-6 items-center justify-center rounded-md bg-brand-600 text-[13px] font-bold text-white">A</span>
+                <svg class="h-6 w-6 text-brand-900" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <!-- Mark angular "A" menyilang -->
+                    <path d="M12 2 1 22h5.2L12 11.4 17.8 22H23L12 2Zm-1.9 14h3.8L12 13.2 10.1 16Z" />
+                </svg>
                 <span class="text-lg font-bold tracking-tight text-ink">akunhaus</span>
             </Link>
 
@@ -40,7 +43,7 @@ const navLinks = [
 
             <!-- Search -->
             <div class="ml-auto hidden min-w-0 flex-1 justify-center lg:flex">
-                <label class="flex h-10 w-full max-w-[420px] items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4 transition focus-within:border-brand-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-100">
+                <label class="flex h-10 w-full max-w-[420px] items-center gap-2.5 rounded-full border border-slate-200 bg-slate-50 px-4 transition focus-within:border-slate-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-slate-200">
                     <svg class="h-4.5 w-4.5 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                     </svg>

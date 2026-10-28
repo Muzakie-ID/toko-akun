@@ -2,16 +2,20 @@
 
 @theme {
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    --color-brand-50: #f5f3ff;
-    --color-brand-100: #ede9fe;
-    --color-brand-200: #ddd6fe;
-    --color-brand-300: #c4b5fd;
-    --color-brand-400: #a78bfa;
-    --color-brand-500: #8b5cf6;
-    --color-brand-600: #7c3aed;
-    --color-brand-700: #6d28d9;
-    --color-brand-800: #5b21b6;
-    --color-brand-900: #4c1d95;
+    /* Brand = hitam netral (desain monokrom); emas aksen hero; krem surface hero */
+    --color-brand-50: #f6f6f6;
+    --color-brand-100: #e7e7e7;
+    --color-brand-200: #d1d1d1;
+    --color-brand-300: #b0b0b0;
+    --color-brand-400: #888888;
+    --color-brand-500: #6d6d6d;
+    --color-brand-600: #1a1a1a;
+    --color-brand-700: #111111;
+    --color-brand-800: #0a0a0a;
+    --color-brand-900: #000000;
+    --color-gold: #b8860b;
+    --color-gold-soft: #c9a227;
+    --color-cream: #f5ede3;
     --color-ink: #0f172a;
     --color-ink-soft: #64748b;
     --color-surface: #f8fafc;
