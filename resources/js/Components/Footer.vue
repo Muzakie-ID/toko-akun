@@ -37,9 +37,7 @@ const columns = [
         <div class="mx-auto grid max-w-[1320px] gap-10 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4 lg:px-15">
             <div>
                 <Link href="/" class="flex items-center gap-2">
-                    <svg class="h-6 w-6 text-brand-900" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M12 2 1 22h5.2L12 11.4 17.8 22H23L12 2Zm-1.9 14h3.8L12 13.2 10.1 16Z" />
-                    </svg>
+                    <Icon icon="heroicons:building-storefront-solid" class="h-6 w-6 text-brand-900" />
                     <span class="text-lg font-bold tracking-tight text-ink">akunhaus</span>
                 </Link>
                 <p class="mt-3 max-w-xs text-sm leading-6 text-slate-500">
