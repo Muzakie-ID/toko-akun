@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    // ponytail: kredensial via .env (GOOGLE_CLIENT_ID/SECRET) — isi setelah bikin OAuth client di Google Cloud Console
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', 'http://localhost:8000/auth/google/callback'),
+    ],
+
 ];

@@ -20,6 +20,8 @@ class HandleInertiaRequests extends Middleware
                 ? ['user' => ['id' => $request->user()->id, 'name' => $request->user()->name, 'role' => $request->user()->role]]
                 : null,
             'cart_count' => fn () => 0,
+            // ponytail: dibutuhkan form logout native di Navbar; Inertia form otomatis via cookie XSRF
+            'csrf_token' => fn () => csrf_token(),
         ];
     }
 }
