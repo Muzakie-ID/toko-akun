@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\StockImportController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -29,3 +30,8 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+
+Route::middleware(['auth', 'role:admin,karyawan'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/stok/import', [StockImportController::class, 'create'])->name('stocks.import');
+    Route::post('/stok/import', [StockImportController::class, 'store'])->name('stocks.import.store');
+});
