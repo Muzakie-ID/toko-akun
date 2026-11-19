@@ -7,7 +7,7 @@ const form = useForm({ email: '', password: '', remember: false })
 
 const googleUrl = usePage().props.auth?.google_url ?? '/auth/google'
 
-const submit = () => form.post('/login')
+const submit = () => form.post('/login', { onFinish: () => form.reset('password') })
 </script>
 
 <template>
@@ -50,8 +50,7 @@ const submit = () => form.post('/login')
 
             <div class="mt-4 flex items-center justify-between">
                 <label class="block text-sm font-medium text-ink" for="password">Password</label>
-                <!-- ponytail: fitur lupa password di luar scope MVP -->
-                <a href="#" class="text-xs font-medium text-slate-500 hover:text-ink">Lupa password?</a>
+                <Link href="/lupa-password" class="text-xs font-medium text-slate-500 hover:text-ink">Lupa password?</Link>
             </div>
             <input
                 id="password"
