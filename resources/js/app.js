@@ -1,7 +1,11 @@
 import { createInertiaApp } from '@inertiajs/vue3'
 import { createApp, h } from 'vue'
-import { Icon } from '@iconify/vue'
+// Build offline: ikon dari bundle (lihat plugin offlineIcons di vite.config.js), tidak memanggil API Iconify
+import { Icon, addCollection } from '@iconify/vue/offline'
+import iconCollections from 'virtual:icons'
 import '../css/app.css'
+
+iconCollections.forEach((collection) => addCollection(collection))
 
 createInertiaApp({
     title: (title) => (title ? `${title} - Akunhaus` : 'Akunhaus'),
