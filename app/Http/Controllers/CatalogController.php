@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Review;
 use App\Services\Saldo\ResellerStatus;
+use App\Services\Sale\FlashSalePricing;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -28,6 +29,7 @@ class CatalogController extends Controller
             'durasi.*' => ['integer'],
             'harga_max' => ['nullable', 'integer', 'min:0'],
             'urut' => ['nullable', Rule::in(['populer', 'terbaru', 'termurah', 'termahal'])],
+            'sale' => ['nullable', 'boolean'],
         ]);
 
         $products = $this->activeProducts();
@@ -39,7 +41,8 @@ class CatalogController extends Controller
             ->filter()
             ->when($filters['q'] ?? null, fn ($c, $q) => $c->filter(fn (array $card) => str_contains(mb_strtolower($card['nama']), mb_strtolower($q))))
             ->when($filters['kategori'] ?? null, fn ($c, $slugs) => $c->whereIn('kategori_slug', $slugs))
-            ->when($filters['harga_max'] ?? null, fn ($c, $max) => $c->where('harga', '<=', $max));
+            ->when($filters['harga_max'] ?? null, fn ($c, $max) => $c->where('harga', '<=', $max))
+            ->when($request->boolean('sale'), fn ($c) => $c->where('flash_sale', true));
 
         $cards = match ($filters['urut'] ?? 'populer') {
             'terbaru' => $cards->sortByDesc('id'),
@@ -51,9 +54,19 @@ class CatalogController extends Controller
         $allVariants = $products->flatMap->variants;
 
         $resellerStatus = app(ResellerStatus::class);
+        $currentSale = app(FlashSalePricing::class)->currentSale();
+        $saleCards = $currentSale
+            ? $products->map(fn (Product $product) => ProductCardPresenter::card($product, $user, [], $wishlistIds->has($product->id)))
+                ->filter(fn (?array $card) => $card && $card['flash_sale'])->values()
+            : collect();
 
         return Inertia::render('Catalog', [
             'produk' => $cards->values(),
+            'flashSale' => $currentSale && $saleCards->isNotEmpty() ? [
+                'nama' => $currentSale->nama,
+                'selesai_at' => $currentSale->selesai_at->toIso8601String(),
+                'produk' => $saleCards,
+            ] : null,
             'promo' => [
                 // Batas saldo untuk harga reseller (null bila fitur dimatikan) & diskon terbesar untuk banner
                 'resellerSaldo' => $resellerStatus->isEnabled() ? $resellerStatus->threshold() : null,
@@ -71,6 +84,7 @@ class CatalogController extends Controller
                 'durasi' => array_map('intval', $filters['durasi'] ?? []),
                 'harga_max' => $filters['harga_max'] ?? null,
                 'urut' => $filters['urut'] ?? 'populer',
+                'sale' => $request->boolean('sale'),
             ],
             'opsi' => [
                 'kategori' => Category::query()->orderBy('nama')->get()->map(fn (Category $category): array => [
@@ -124,8 +138,13 @@ class CatalogController extends Controller
                 'durasi_hari' => $variant->durasi_hari,
                 'durasi_label' => $variant->durasi_label,
                 'harga' => $variant->priceFor($user),
-                'harga_asli' => $variant->harga_asli,
+                'harga_asli' => ($sale = $variant->flashSaleFor($user)) ? $variant->basePriceFor($user) : $variant->harga_asli,
                 'stok' => $variant->available_slots_count,
+                'flash_sale' => $sale ? [
+                    'nama' => $sale->flashSale->nama,
+                    'selesai_at' => $sale->flashSale->selesai_at->toIso8601String(),
+                    'sisa' => $sale->sisa($sale->terpakai_items_count),
+                ] : null,
             ]),
             'hargaReseller' => app(ResellerStatus::class)->appliesTo($user),
             'ulasan' => [

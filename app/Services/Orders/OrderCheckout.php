@@ -5,6 +5,7 @@ namespace App\Services\Orders;
 use App\Enums\MetodeBayar;
 use App\Enums\OrderStatus;
 use App\Enums\SaldoTipe;
+use App\Models\FlashSaleItem;
 use App\Models\Order;
 use App\Models\ProductVariant;
 use App\Models\User;
@@ -12,6 +13,7 @@ use App\Services\Payment\PaymentGatewayException;
 use App\Services\Payment\QrismuzClient;
 use App\Services\Saldo\InsufficientSaldoException;
 use App\Services\Saldo\SaldoLedger;
+use App\Services\Sale\FlashSalePricing;
 use App\Services\Settings;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -68,12 +70,18 @@ class OrderCheckout
 
             foreach ($quantities as $variantId => $qty) {
                 $variant = $variants[$variantId];
-                $price = $variant->priceFor($user);
+                $basePrice = $variant->basePriceFor($user);
+                [$saleItem, $saleSlots] = $this->lockFlashSale($variant, $basePrice);
 
-                // Satu baris per akun/slot agar tiap baris punya kredensial sendiri
-                foreach (range(1, $qty) as $_) {
+                // Satu baris per akun/slot agar tiap baris punya kredensial sendiri.
+                // Harga flash sale hanya untuk baris sebanyak sisa kuota; sisanya harga normal.
+                foreach (range(1, $qty) as $index) {
+                    $onSale = $saleItem !== null && ($saleSlots === null || $index <= $saleSlots);
+                    $price = $onSale ? $saleItem->harga_sale : $basePrice;
+
                     $items[] = [
                         'product_variant_id' => $variant->id,
+                        'flash_sale_item_id' => $onSale ? $saleItem->id : null,
                         'snapshot_produk' => $variant->product->nama,
                         'snapshot_jenis_akun' => $variant->jenis_akun,
                         'snapshot_durasi_hari' => $variant->durasi_hari,
@@ -109,6 +117,8 @@ class OrderCheckout
             return $order;
         });
 
+        app(FlashSalePricing::class)->flush();
+
         return match ($metode) {
             MetodeBayar::Qris => tap($order, fn (Order $o) => $this->createQrisInvoice($o)),
             MetodeBayar::Saldo => $this->lifecycle->markPaid($order),
@@ -143,6 +153,31 @@ class OrderCheckout
             'qris_payload' => $transaction['qris_payload'],
             'expires_at' => $transaction['expires_at'] ? Carbon::parse($transaction['expires_at'])->setTimezone(config('app.timezone')) : now()->addMinutes(15),
         ]);
+    }
+
+    /**
+     * Kunci item flash sale yang berlaku untuk varian ini (agar kuota tidak terjual melebihi batas saat
+     * checkout bersamaan) dan hitung sisa kuotanya. Mengembalikan [item|null, sisa|null (tanpa batas)].
+     *
+     * @return array{0: FlashSaleItem|null, 1: int|null}
+     */
+    private function lockFlashSale(ProductVariant $variant, int $basePrice): array
+    {
+        $item = FlashSaleItem::query()
+            ->where('product_variant_id', $variant->id)
+            ->where('harga_sale', '<', $basePrice)
+            ->whereHas('flashSale', fn ($query) => $query->berlangsung())
+            ->orderBy('harga_sale')
+            ->lockForUpdate()
+            ->first();
+
+        if (! $item) {
+            return [null, null];
+        }
+
+        $remaining = $item->sisa();
+
+        return $remaining === 0 ? [null, null] : [$item, $remaining];
     }
 
     /**

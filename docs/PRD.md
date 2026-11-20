@@ -43,6 +43,9 @@ order_items      id, order_id, product_variant_id, snapshot_produk, snapshot_jen
                  harga, delivered_at, aktif_sampai   -- 1 baris = 1 akun/slot (qty dipecah saat checkout)
 settings         key, value   -- pengaturan toko & pembayaran; API key & webhook secret terenkripsi
 webhook_events   event_id (unik), type, merchant_ref   -- dedup webhook qris-muz
+flash_sales      id, nama, mulai_at, selesai_at, is_aktif
+flash_sale_items id, flash_sale_id, product_variant_id, harga_sale, kuota (null = tanpa batas)
+                 -- order_items.flash_sale_item_id terisi bila akun dibeli dengan harga sale
 reviews          id, order_item_id (unik), user_id, product_id, rating (1-5), komentar, is_tampil
 wishlists        id, user_id, product_id (unik per user)
 ```
@@ -107,6 +110,7 @@ Catatan:
 | Stok Akun | **Sudah dibuat** (`/admin/stok`): daftar + slot terjual per invoice, edit kredensial & info slot (klaim garansi), hapus bila belum terjual |
 | Kategori | **Sudah dibuat** (`/admin/kategori`) |
 | Ulasan | **Sudah dibuat** (`/admin/ulasan`): filter bintang/tampil, sembunyikan, hapus |
+| Flash Sale | **Sudah dibuat** (`/admin/flash-sale`): buat/edit sale (nama, jadwal WIB, aktif, varian + harga sale + kuota), status berlangsung/akan datang/selesai, terjual; kartu hitung mundur di dashboard |
 | Top-up Saldo | **Sudah dibuat** (`/admin/topup`): daftar top-up + total masuk bulan ini. Penyesuaian saldo di halaman Pengguna (admin) |
 | User (Admin only) | **Sudah dibuat** (`/admin/pengguna`): ubah role, buat akun karyawan/admin |
 | Pengaturan (Admin only) | **Sudah dibuat** (`/admin/pengaturan`): toko & target, QRIS qris-muz, rekening transfer manual |
@@ -129,12 +133,13 @@ Catatan:
 ### Fase 2
 - Notifikasi WhatsApp/Telegram
 - Komisi & dashboard reseller (referral)
-- Kupon/voucher, flash sale ("Deals" di navbar)
+- Kupon/voucher
 
 ## 7. Keputusan
 
 1. Garansi → **klaim manual**: admin perbarui kredensial di stok, pembeli lihat otomatis.
 2. Reseller → **level harga** (lebih murah) yang dinamis mengikuti saldo saat ini (≥ Rp1.000.000, bisa diubah/dimatikan di Pengaturan), atau permanen lewat role Reseller dari admin. Multi-level nanti bila perlu.
+7. **Flash sale**: harga sale berlaku otomatis hanya selama jadwal sale aktif. Reseller dapat harga termurah antara harga reseller dan harga sale. Kuota dihitung per akun; beli melebihi sisa kuota = sisanya harga normal (sama di detail, keranjang, checkout). Kuota dari pesanan batal/kedaluwarsa kembali. Satu varian tidak boleh ada di dua sale aktif yang jadwalnya bentrok. Banner + hitung mundur di beranda hanya bila ada produk yang masih bisa dibeli dengan harga sale. Sale yang sudah ada pembelinya tidak bisa dihapus, cukup dinonaktifkan.
 6. **Saldo**: top-up hanya lewat QRIS qris-muz (min/max di Pengaturan, kode unik tidak ikut masuk saldo; bayar telat tetap dikreditkan). Saldo bisa dipakai bayar (lunas seketika). Refund pesanan bayar-saldo otomatis kembali ke saldo; pesanan lain bisa dipilih refund ke saldo. Admin bisa menyesuaikan saldo manual (tercatat). Saldo tidak bisa ditarik tunai.
 3. Tipe akun **private/sharing** → pilihan varian yang ditentukan admin; sharing lewat multi-slot dengan info per slot.
 5. Durasi bebas dalam hari; stok terpisah per durasi.

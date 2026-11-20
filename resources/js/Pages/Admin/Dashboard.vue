@@ -5,6 +5,7 @@ import RevenueChart from '@/Components/Admin/RevenueChart.vue'
 import StatCard from '@/Components/Admin/StatCard.vue'
 import StatusBadge from '@/Components/Admin/StatusBadge.vue'
 import TargetGauge from '@/Components/Admin/TargetGauge.vue'
+import Countdown from '@/Components/Countdown.vue'
 import { rupiah } from '@/lib/format'
 
 const props = defineProps({
@@ -14,6 +15,7 @@ const props = defineProps({
     perluTindakan: { type: Object, required: true },
     pesananTerbaru: { type: Array, required: true },
     stokMenipis: { type: Array, required: true },
+    flashSale: { type: Object, default: null },
 })
 
 const user = computed(() => usePage().props.auth?.user)
@@ -91,6 +93,18 @@ const tindakan = computed(() => [
                         <div class="h-full rounded-full bg-accent-500" :style="{ width: `${target.persen}%` }" />
                     </div>
                 </section>
+
+                <Link v-if="flashSale" :href="`/admin/flash-sale/${flashSale.id}/edit`" class="block rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 p-5 text-white">
+                    <p class="flex items-center gap-1.5 text-sm font-semibold"><Icon icon="heroicons:bolt-solid" class="h-4 w-4" /> {{ flashSale.nama }}</p>
+                    <p class="mt-1 text-xs text-white/80">Berakhir dalam</p>
+                    <div class="mt-2"><Countdown :to="flashSale.selesai_at" /></div>
+                    <p class="mt-3 text-sm">
+                        <b>{{ flashSale.terjual }}</b>{{ flashSale.kuota ? ` / ${flashSale.kuota}` : '' }} akun terjual · {{ flashSale.jumlah_varian }} varian
+                    </p>
+                </Link>
+                <Link v-else href="/admin/flash-sale/create" class="flex items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-600 hover:border-accent-300">
+                    <Icon icon="heroicons:bolt" class="h-5 w-5 text-slate-400" /> Belum ada flash sale berlangsung. <span class="ml-auto font-semibold text-accent-600">Buat</span>
+                </Link>
 
                 <section class="rounded-2xl bg-white p-5 ring-1 ring-slate-200/70">
                     <h2 class="text-base font-semibold text-ink">Perlu Tindakan</h2>

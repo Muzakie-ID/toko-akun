@@ -25,6 +25,8 @@ class ProductCardPresenter
 
         $cheapest = $variants->sortBy(fn (ProductVariant $variant) => $variant->priceFor($user))->first();
 
+        $sale = $cheapest?->flashSaleFor($user);
+
         if (! $cheapest) {
             return null;
         }
@@ -35,7 +37,9 @@ class ProductCardPresenter
             'nama' => $product->nama,
             'kategori_slug' => $product->category->slug,
             'harga' => $cheapest->priceFor($user),
-            'harga_asli' => $cheapest->harga_asli,
+            // Saat flash sale, harga coret = harga normal agar diskon yang terlihat jujur
+            'harga_asli' => $sale ? $cheapest->basePriceFor($user) : $cheapest->harga_asli,
+            'flash_sale' => $sale !== null,
             'jenis_akun_label' => $cheapest->jenis_akun->label(),
             'durasi_label' => $cheapest->durasi_label,
             'jumlah_varian' => $product->variants->count(),

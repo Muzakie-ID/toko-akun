@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\OrderStatus;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Models\FlashSale;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductVariant;
@@ -70,6 +71,14 @@ class DashboardController extends Controller
                 'menungguStok' => Order::where('status', OrderStatus::Diproses)->count(),
                 'bayarTelat' => Order::whereNotNull('late_paid_at')->whereIn('status', [OrderStatus::Kedaluwarsa, OrderStatus::Dibatalkan])->count(),
             ],
+            'flashSale' => ($sale = FlashSale::query()->berlangsung()->with(['items' => fn ($query) => $query->withCount('terpakaiItems')])->orderBy('selesai_at')->first()) ? [
+                'id' => $sale->id,
+                'nama' => $sale->nama,
+                'selesai_at' => $sale->selesai_at->toIso8601String(),
+                'terjual' => (int) $sale->items->sum('terpakai_items_count'),
+                'kuota' => $sale->items->contains(fn ($item) => $item->kuota === null) ? null : (int) $sale->items->sum('kuota'),
+                'jumlah_varian' => $sale->items->count(),
+            ] : null,
             'pesananTerbaru' => Order::query()
                 ->with(['user:id,name', 'items:id,order_id,snapshot_produk'])
                 ->latest()

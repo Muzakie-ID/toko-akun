@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * Satu baris = satu akun/slot (qty dipecah per baris saat checkout).
  * Kredensial dibaca live dari stok lewat slot, jadi update stok (klaim garansi) langsung terlihat pembeli.
  */
-#[Fillable(['order_id', 'product_variant_id', 'snapshot_produk', 'snapshot_jenis_akun', 'snapshot_durasi_hari', 'harga', 'delivered_at', 'aktif_sampai'])]
+#[Fillable(['order_id', 'product_variant_id', 'flash_sale_item_id', 'snapshot_produk', 'snapshot_jenis_akun', 'snapshot_durasi_hari', 'harga', 'delivered_at', 'aktif_sampai'])]
 class OrderItem extends Model
 {
     /** @use HasFactory<OrderItemFactory> */
@@ -77,5 +77,10 @@ class OrderItem extends Model
     public function review(): HasOne
     {
         return $this->hasOne(Review::class);
+    }
+
+    public function flashSaleItem(): BelongsTo
+    {
+        return $this->belongsTo(FlashSaleItem::class);
     }
 }

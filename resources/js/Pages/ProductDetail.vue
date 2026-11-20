@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
+import Countdown from '@/Components/Countdown.vue'
 import StarRating from '@/Components/StarRating.vue'
 import { brandColors } from '@/lib/brand'
 import { angka, rupiah } from '@/lib/format'
@@ -32,6 +33,15 @@ const durasiList = computed(() => props.varian.filter((v) => v.jenis_akun === je
 const pilihan = ref(durasiList.value.find((v) => v.stok > 0)?.id ?? durasiList.value[0]?.id ?? null)
 const terpilih = computed(() => props.varian.find((v) => v.id === pilihan.value))
 const qty = ref(1)
+
+// Sama dengan checkout: harga sale hanya untuk sebanyak sisa kuota, sisanya harga normal
+const total = computed(() => {
+    const v = terpilih.value
+    if (!v) return 0
+    if (!v.flash_sale || v.flash_sale.sisa === null) return v.harga * qty.value
+    const diSale = Math.min(qty.value, v.flash_sale.sisa)
+    return diSale * v.harga + (qty.value - diSale) * v.harga_asli
+})
 const processing = ref(false)
 
 const pilihJenis = (value) => {
@@ -142,17 +152,27 @@ const beli = (beliSekarang) => {
                                 <span class="block text-xs font-medium text-slate-600">{{ v.durasi_label }}</span>
                                 <span class="mt-0.5 block text-sm font-bold text-ink">{{ rupiah(v.harga) }}</span>
                                 <span v-if="v.harga_asli && v.harga_asli > v.harga" class="block text-[11px] text-slate-400 line-through">{{ rupiah(v.harga_asli) }}</span>
+                                <span v-if="v.flash_sale" class="mt-0.5 flex items-center gap-0.5 text-[11px] font-semibold text-orange-600"><Icon icon="heroicons:bolt-solid" class="h-3 w-3" />Sale</span>
                                 <span v-if="v.stok === 0" class="block text-[11px] font-semibold text-rose-600">Habis</span>
                             </button>
                         </div>
                         <p v-if="hargaReseller" class="mt-2 text-xs font-medium text-amber-700">Harga reseller sudah diterapkan.</p>
 
                         <!-- Ringkasan & aksi -->
-                        <div v-if="terpilih" class="mt-6 rounded-2xl border border-slate-200 p-4">
+                        <div v-if="terpilih?.flash_sale" class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 px-4 py-3 text-white">
+                            <p class="flex items-center gap-1 text-sm font-bold"><Icon icon="heroicons:bolt-solid" class="h-4 w-4" /> {{ terpilih.flash_sale.nama }}</p>
+                            <span class="text-xs text-white/85">berakhir dalam</span>
+                            <Countdown :to="terpilih.flash_sale.selesai_at" @selesai="router.reload()" />
+                            <p v-if="terpilih.flash_sale.sisa !== null" class="w-full text-xs text-white/90">Sisa kuota harga sale: <b>{{ terpilih.flash_sale.sisa }}</b> akun. Selebihnya harga normal.</p>
+                        </div>
+                        <div v-if="terpilih" class="rounded-2xl border border-slate-200 p-4" :class="terpilih.flash_sale ? 'mt-3' : 'mt-6'">
                             <div class="flex flex-wrap items-center justify-between gap-3">
                                 <div>
                                     <p class="text-sm text-slate-500">{{ terpilih.jenis_akun_label }} · {{ terpilih.durasi_label }}</p>
-                                    <p class="text-2xl font-bold text-ink">{{ rupiah(terpilih.harga * qty) }}</p>
+                                    <p class="flex flex-wrap items-baseline gap-x-2 text-2xl font-bold text-ink">
+                                        {{ rupiah(total) }}
+                                        <span v-if="terpilih.harga_asli && terpilih.harga_asli * qty > total" class="text-sm font-normal text-slate-400 line-through">{{ rupiah(terpilih.harga_asli * qty) }}</span>
+                                    </p>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <button type="button" class="h-10 w-10 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="qty <= 1" aria-label="Kurangi jumlah" @click="qty--">&minus;</button>

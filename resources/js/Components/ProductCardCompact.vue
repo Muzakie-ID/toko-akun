@@ -29,6 +29,7 @@ const toggleWishlist = () => {
         <div class="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl" :style="{ background: warna.bg }">
             <img v-if="product.logo_url" :src="product.logo_url" :alt="`Logo ${product.nama}`" class="h-12 w-12 rounded-xl object-contain" />
             <span v-else class="text-4xl font-black" :style="{ color: warna.fg }">{{ product.nama.charAt(0) }}</span>
+            <span v-if="product.flash_sale" class="absolute top-1.5 left-1.5 flex items-center gap-0.5 rounded-md bg-orange-500 px-1.5 py-0.5 text-[10px] font-bold text-white"><Icon icon="heroicons:bolt-solid" class="h-3 w-3" />Sale</span>
             <span v-if="diskon" class="absolute bottom-1.5 left-1.5 rounded-md bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold text-white">-{{ diskon }}%</span>
             <span v-if="!product.stok_ada" class="absolute bottom-1.5 left-1.5 rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">Habis</span>
         </div>

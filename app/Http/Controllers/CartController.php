@@ -38,6 +38,10 @@ class CartController extends Controller
                     'jenis_akun_label' => $variant->jenis_akun->label(),
                     'durasi_label' => $variant->durasi_label,
                     'harga' => $variant->priceFor($user),
+                    'harga_normal' => $variant->basePriceFor($user),
+                    // null = bukan sale / kuota tanpa batas; angka = sisa akun yang dapat harga sale
+                    'sisa_sale' => ($sale = $variant->flashSaleFor($user)) ? $sale->sisa($sale->terpakai_items_count) : null,
+                    'flash_sale' => $sale !== null,
                     'qty' => $item->qty,
                     'stok' => $isAvailable ? $variant->available_slots_count : 0,
                 ];

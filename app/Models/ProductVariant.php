@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\JenisAkun;
 use App\Services\Saldo\ResellerStatus;
+use App\Services\Sale\FlashSalePricing;
 use Database\Factories\ProductVariantFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -73,15 +74,35 @@ class ProductVariant extends Model
     }
 
     /**
-     * Harga yang berlaku untuk user: harga_reseller bila diisi dan user berstatus reseller
-     * (role reseller atau saldo saat ini >= batas, lihat ResellerStatus).
+     * Harga normal untuk user: harga_reseller bila diisi dan user berstatus reseller
+     * (role reseller atau saldo saat ini >= batas, lihat ResellerStatus), selain itu harga jual.
      */
-    public function priceFor(?User $user): int
+    public function basePriceFor(?User $user): int
     {
         if ($this->harga_reseller !== null && app(ResellerStatus::class)->appliesTo($user)) {
             return $this->harga_reseller;
         }
 
         return $this->harga;
+    }
+
+    /**
+     * Harga yang dibayar: harga flash sale bila sedang berlaku dan lebih murah, selain itu harga normal.
+     */
+    public function priceFor(?User $user): int
+    {
+        $sale = $this->flashSaleFor($user);
+
+        return $sale ? $sale->harga_sale : $this->basePriceFor($user);
+    }
+
+    /**
+     * Item flash sale yang berlaku untuk user ini (hanya bila lebih murah dari harga normalnya).
+     */
+    public function flashSaleFor(?User $user): ?FlashSaleItem
+    {
+        $item = app(FlashSalePricing::class)->activeItemFor($this);
+
+        return $item && $item->harga_sale < $this->basePriceFor($user) ? $item : null;
     }
 }

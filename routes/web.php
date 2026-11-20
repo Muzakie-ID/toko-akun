@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FlashSaleController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductVariantController;
@@ -91,6 +92,11 @@ Route::middleware(['auth', 'role:admin,karyawan'])->prefix('admin')->name('admin
     Route::delete('/varian/{variant}', [ProductVariantController::class, 'destroy'])->name('variants.destroy');
 
     Route::get('/topup', [AdminTopupController::class, 'index'])->name('topups.index');
+
+    Route::resource('flash-sale', FlashSaleController::class)
+        ->except('show')
+        ->parameters(['flash-sale' => 'flashSale'])
+        ->names('flash-sales');
 
     Route::get('/ulasan', [AdminReviewController::class, 'index'])->name('reviews.index');
     Route::post('/ulasan/{review}/tampil', [AdminReviewController::class, 'toggle'])->name('reviews.toggle');

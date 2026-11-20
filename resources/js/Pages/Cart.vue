@@ -11,7 +11,13 @@ const props = defineProps({
 })
 
 const hargaReseller = computed(() => usePage().props.auth?.user?.harga_reseller)
-const subtotal = computed(() => props.items.reduce((t, i) => t + i.harga * i.qty, 0))
+// Sama dengan checkout: harga sale hanya untuk sebanyak sisa kuota, sisanya harga normal
+const lineTotal = (i) => {
+    if (!i.flash_sale || i.sisa_sale === null) return i.harga * i.qty
+    const diSale = Math.min(i.qty, i.sisa_sale)
+    return diSale * i.harga + (i.qty - diSale) * i.harga_normal
+}
+const subtotal = computed(() => props.items.reduce((t, i) => t + lineTotal(i), 0))
 const saldoCukup = computed(() => props.saldo >= subtotal.value)
 const isDisabled = (m) => m.value === 'saldo' && !saldoCukup.value
 
@@ -42,7 +48,10 @@ const checkout = () => form.post('/checkout')
                         </div>
                         <div class="min-w-0 flex-1">
                             <Link :href="`/produk/${item.slug}`" class="text-sm font-semibold text-ink hover:underline">{{ item.nama }}</Link>
-                            <p class="mt-0.5 text-xs text-slate-500">{{ item.jenis_akun_label }} &bull; {{ item.durasi_label }} &bull; {{ rupiah(item.harga) }}</p>
+                            <p class="mt-0.5 text-xs text-slate-500">
+                                {{ item.jenis_akun_label }} &bull; {{ item.durasi_label }} &bull; {{ rupiah(item.harga) }}
+                                <span v-if="item.flash_sale" class="ml-1 inline-flex items-center gap-0.5 rounded bg-orange-500 px-1 text-[10px] font-bold text-white"><Icon icon="heroicons:bolt-solid" class="h-3 w-3" />Sale</span>
+                            </p>
                             <p v-if="item.qty > item.stok" class="mt-1 text-xs font-medium text-rose-600">{{ item.stok ? `Stok tinggal ${item.stok}, kurangi jumlahnya.` : 'Stok habis, hapus dari keranjang.' }}</p>
                         </div>
                         <button type="button" class="-mt-2 -mr-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-500" :aria-label="`Hapus ${item.nama}`" @click="hapus(item)">
@@ -55,7 +64,10 @@ const checkout = () => form.post('/checkout')
                             <span class="w-8 text-center text-sm font-semibold text-ink" aria-live="polite">{{ item.qty }}</span>
                             <button type="button" class="h-10 w-10 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="item.qty >= item.stok" :aria-label="`Tambah ${item.nama}`" @click="ubahQty(item, item.qty + 1)">+</button>
                         </div>
-                        <p class="text-base font-bold text-ink">{{ rupiah(item.harga * item.qty) }}</p>
+                        <p class="text-right text-base font-bold text-ink">
+                            {{ rupiah(lineTotal(item)) }}
+                            <span v-if="item.flash_sale && item.sisa_sale !== null && item.qty > item.sisa_sale" class="block text-[11px] font-normal text-slate-500">{{ item.sisa_sale }} akun harga sale</span>
+                        </p>
                     </div>
                 </article>
                 <p class="text-xs text-slate-500">Setiap akun dikirim terpisah. Beli 2 = dapat 2 akun/slot berbeda.</p>

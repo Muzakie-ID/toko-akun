@@ -37,7 +37,8 @@ const diskon = computed(() => {
             >
                 <Icon :icon="product.di_wishlist ? 'heroicons:heart-solid' : 'heroicons:heart'" class="h-5 w-5" />
             </button>
-            <span v-if="!product.stok_ada" class="absolute top-3 left-3 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-semibold text-slate-600">Stok habis</span>
+            <span v-if="product.flash_sale" class="absolute top-3 left-3 flex items-center gap-1 rounded-full bg-orange-500 px-2 py-0.5 text-[11px] font-bold text-white"><Icon icon="heroicons:bolt-solid" class="h-3.5 w-3.5" />Flash Sale</span>
+            <span v-if="!product.stok_ada" class="absolute bottom-3 left-3 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-semibold text-slate-600">Stok habis</span>
         </div>
 
         <div class="flex flex-1 flex-col px-4 pt-3.5 pb-4">

@@ -1,6 +1,7 @@
 <script setup>
 import { Link, router, usePage } from '@inertiajs/vue3'
 import { computed, reactive, ref } from 'vue'
+import Countdown from '@/Components/Countdown.vue'
 import ProductCardCompact from '@/Components/ProductCardCompact.vue'
 import { rupiah } from '@/lib/format'
 
@@ -10,6 +11,7 @@ const props = defineProps({
     filters: { type: Object, required: true },
     opsi: { type: Object, required: true },
     promo: { type: Object, required: true },
+    flashSale: { type: Object, default: null },
 })
 
 const user = computed(() => usePage().props.auth?.user)
@@ -28,6 +30,7 @@ const f = reactive({
     durasi: [...props.filters.durasi],
     harga_max: props.filters.harga_max ?? props.opsi.harga_tertinggi,
     urut: props.filters.urut,
+    sale: props.filters.sale ?? false,
 })
 
 const apply = () => {
@@ -35,6 +38,8 @@ const apply = () => {
     if (!query.q) delete query.q
     if (!query.harga_max || query.harga_max >= props.opsi.harga_tertinggi) delete query.harga_max
     if (query.urut === 'populer') delete query.urut
+    if (query.sale) query.sale = 1
+    else delete query.sale
     router.get('/', query, { preserveState: true, preserveScroll: true, replace: true, only: ['produk', 'filters'] })
 }
 
@@ -45,11 +50,17 @@ const toggle = (list, value) => {
 }
 
 const reset = () => {
-    Object.assign(f, { q: '', kategori: [], jenis: [], durasi: [], harga_max: props.opsi.harga_tertinggi, urut: 'populer' })
+    Object.assign(f, { q: '', kategori: [], jenis: [], durasi: [], harga_max: props.opsi.harga_tertinggi, urut: 'populer', sale: false })
     apply()
 }
 
-const adaFilter = () => f.q || f.kategori.length || f.jenis.length || f.durasi.length || f.harga_max < props.opsi.harga_tertinggi
+const lihatSale = () => {
+    f.sale = true
+    apply()
+}
+// Saat sale berakhir, muat ulang agar harga kembali normal
+const saleSelesai = () => router.reload()
+const adaFilter = () => f.sale || f.q || f.kategori.length || f.jenis.length || f.durasi.length || f.harga_max < props.opsi.harga_tertinggi
 
 // Di HP, sidebar filter dibuka sebagai panel bawah
 const filterOpen = ref(false)
@@ -82,6 +93,13 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
                 @click="pilihKategori(null)"
             >Semua</button>
             <button
+                v-if="f.sale"
+                type="button"
+                class="flex h-9 shrink-0 items-center gap-1 rounded-full bg-rose-500 px-4 text-sm font-medium text-white"
+                aria-label="Hapus filter flash sale"
+                @click="f.sale = false; apply()"
+            ><Icon icon="heroicons:bolt-solid" class="h-4 w-4" /> Flash Sale <Icon icon="heroicons:x-mark" class="h-4 w-4" /></button>
+            <button
                 v-for="k in opsi.kategori"
                 :key="k.value"
                 type="button"
@@ -103,6 +121,23 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
                     Belanja Sekarang <Icon icon="heroicons:arrow-right" class="h-4 w-4" />
                 </a>
             </div>
+
+            <!-- Flash sale (hanya saat ada sale berlangsung) -->
+            <section v-if="flashSale" class="mx-4 mt-3 overflow-hidden rounded-3xl bg-gradient-to-br from-rose-500 to-orange-500 pt-4 pb-3 text-white">
+                <div class="flex items-start justify-between gap-3 px-4">
+                    <div class="min-w-0">
+                        <p class="flex items-center gap-1 text-base font-bold"><Icon icon="heroicons:bolt-solid" class="h-5 w-5" /> {{ flashSale.nama }}</p>
+                        <p class="text-xs text-white/80">Berakhir dalam</p>
+                    </div>
+                    <button type="button" class="-my-1 shrink-0 rounded-lg bg-white/15 px-3 py-2 text-xs font-semibold" @click="lihatSale">Lihat semua</button>
+                </div>
+                <div class="mt-2 px-4"><Countdown :to="flashSale.selesai_at" @selesai="saleSelesai" /></div>
+                <ul class="mt-3 flex snap-x gap-2.5 overflow-x-auto px-4 pb-1 text-ink [scrollbar-width:none]">
+                    <li v-for="p in flashSale.produk" :key="p.id" class="w-36 shrink-0 snap-start">
+                        <ProductCardCompact :product="p" />
+                    </li>
+                </ul>
+            </section>
 
             <!-- Kartu jaminan -->
             <div class="mx-4 mt-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200/80">
@@ -183,6 +218,20 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
                     :style="{ background: b.bg }"
                 >{{ b.h }}</span>
             </div>
+        </div>
+    </section>
+
+    <!-- Flash sale desktop -->
+    <section v-if="flashSale && !adaFilter()" class="mx-auto mt-6 hidden max-w-[1320px] px-4 md:block lg:px-15">
+        <div class="rounded-3xl bg-gradient-to-br from-rose-500 to-orange-500 p-6 text-white">
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+                <h2 class="flex items-center gap-2 text-xl font-bold"><Icon icon="heroicons:bolt-solid" class="h-6 w-6" /> {{ flashSale.nama }}</h2>
+                <div class="flex items-center gap-2 text-sm text-white/85">Berakhir dalam <Countdown :to="flashSale.selesai_at" @selesai="saleSelesai" /></div>
+                <button type="button" class="ml-auto h-10 rounded-xl bg-white px-4 text-sm font-semibold text-ink" @click="lihatSale">Lihat semua sale</button>
+            </div>
+            <ul class="mt-5 grid grid-cols-2 gap-3 text-ink lg:grid-cols-4 xl:grid-cols-6">
+                <li v-for="p in flashSale.produk.slice(0, 6)" :key="p.id"><ProductCardCompact :product="p" /></li>
+            </ul>
         </div>
     </section>
 
@@ -330,7 +379,7 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
 
             <!-- Grid produk -->
             <div class="min-w-0 flex-1">
-                <h2 class="text-base font-bold text-ink md:text-2xl">{{ adaFilter() ? 'Hasil' : 'Semua Produk' }}<span class="hidden md:inline">{{ adaFilter() ? '' : ' Premium untuk Kamu' }}</span></h2>
+                <h2 class="text-base font-bold text-ink md:text-2xl">{{ f.sale ? 'Flash Sale' : adaFilter() ? 'Hasil' : 'Semua Produk' }}<span class="hidden md:inline">{{ adaFilter() ? '' : ' Premium untuk Kamu' }}</span></h2>
                 <p class="mt-1 hidden text-sm text-slate-500 md:block">Temukan akun dan layanan digital sesuai kebutuhanmu.</p>
 
                 <p v-if="filters.q" class="mt-3 text-sm text-slate-600">Hasil pencarian "<span class="font-semibold text-ink">{{ filters.q }}</span>" &middot; {{ produk.length }} produk</p>
