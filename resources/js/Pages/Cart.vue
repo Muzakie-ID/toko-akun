@@ -1,5 +1,5 @@
 <script setup>
-import { Head, Link, router, useForm } from '@inertiajs/vue3'
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { brandColors } from '@/lib/brand'
 import { rupiah } from '@/lib/format'
@@ -7,11 +7,15 @@ import { rupiah } from '@/lib/format'
 const props = defineProps({
     items: { type: Array, required: true },
     metode: { type: Array, required: true },
+    saldo: { type: Number, default: 0 },
 })
 
-const form = useForm({ metode_bayar: props.metode[0]?.value ?? '' })
-
+const hargaReseller = computed(() => usePage().props.auth?.user?.harga_reseller)
 const subtotal = computed(() => props.items.reduce((t, i) => t + i.harga * i.qty, 0))
+const saldoCukup = computed(() => props.saldo >= subtotal.value)
+const isDisabled = (m) => m.value === 'saldo' && !saldoCukup.value
+
+const form = useForm({ metode_bayar: (props.metode.find((m) => !isDisabled(m)) ?? {}).value ?? '' })
 const jumlahAkun = computed(() => props.items.reduce((t, i) => t + i.qty, 0))
 const adaMasalahStok = computed(() => props.items.some((i) => i.qty > i.stok))
 
@@ -58,13 +62,17 @@ const checkout = () => form.post('/checkout')
                 <div class="rounded-2xl border border-slate-200 p-5">
                     <h2 class="text-sm font-semibold text-ink">Metode Pembayaran</h2>
                     <div v-if="metode.length" class="mt-3 space-y-2" role="radiogroup">
-                        <label v-for="m in metode" :key="m.value" class="flex cursor-pointer gap-3 rounded-xl border p-3 transition" :class="form.metode_bayar === m.value ? 'border-ink bg-slate-50 ring-1 ring-ink' : 'border-slate-200 hover:border-slate-400'">
-                            <input v-model="form.metode_bayar" type="radio" name="metode" :value="m.value" class="mt-0.5 h-4 w-4 text-brand-600" />
+                        <label v-for="m in metode" :key="m.value" class="flex gap-3 rounded-xl border p-3 transition" :class="[form.metode_bayar === m.value ? 'border-ink bg-slate-50 ring-1 ring-ink' : 'border-slate-200 hover:border-slate-400', isDisabled(m) ? 'cursor-not-allowed opacity-60' : 'cursor-pointer']">
+                            <input v-model="form.metode_bayar" type="radio" name="metode" :value="m.value" :disabled="isDisabled(m)" class="mt-0.5 h-4 w-4 text-brand-600" />
                             <span>
                                 <span class="flex items-center gap-1.5 text-sm font-semibold text-ink">
-                                    <Icon :icon="m.value === 'qris' ? 'heroicons:qr-code' : 'heroicons:building-library'" class="h-4 w-4" /> {{ m.label }}
+                                    <Icon :icon="{ qris: 'heroicons:qr-code', saldo: 'heroicons:wallet' }[m.value] ?? 'heroicons:building-library'" class="h-4 w-4" /> {{ m.label }}
+                                    <span v-if="m.value === 'saldo'" class="font-normal text-slate-500">· {{ rupiah(saldo) }}</span>
                                 </span>
                                 <span class="mt-0.5 block text-xs leading-5 text-slate-500">{{ m.keterangan }}</span>
+                                <span v-if="isDisabled(m)" class="mt-1 block text-xs font-medium text-rose-600">
+                                    Kurang {{ rupiah(subtotal - saldo) }}. <Link href="/saldo" class="underline">Top-up</Link>
+                                </span>
                             </span>
                         </label>
                     </div>
@@ -74,6 +82,9 @@ const checkout = () => form.post('/checkout')
 
                 <div class="rounded-2xl border border-slate-200 p-5">
                     <h2 class="text-sm font-semibold text-ink">Ringkasan</h2>
+                    <p v-if="hargaReseller" class="mt-2 flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800">
+                        <Icon icon="heroicons:sparkles" class="h-3.5 w-3.5" /> Harga reseller diterapkan
+                    </p>
                     <dl class="mt-3 space-y-2 text-sm">
                         <div class="flex justify-between text-slate-600"><dt>Subtotal ({{ jumlahAkun }} akun)</dt><dd class="font-medium text-ink">{{ rupiah(subtotal) }}</dd></div>
                         <div v-if="form.metode_bayar === 'qris'" class="flex justify-between text-xs text-slate-500"><dt>Kode unik QRIS</dt><dd>+ Rp 1–999</dd></div>

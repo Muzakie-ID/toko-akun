@@ -11,7 +11,7 @@ const props = defineProps({
 
 const base = `/admin/pesanan/${props.order.invoice}`
 const dialog = ref(null)
-const reasonForm = useForm({ alasan: '', catatan: '' })
+const reasonForm = useForm({ alasan: '', catatan: '', ke_saldo: props.order.metode_value === 'saldo' })
 const noteForm = useForm({ catatan_admin: props.order.catatan_admin ?? '' })
 const shown = ref({})
 
@@ -22,6 +22,7 @@ const post = (path, confirmText) => {
 
 const openDialog = (type) => {
     reasonForm.reset()
+    reasonForm.ke_saldo = props.order.metode_value === 'saldo'
     reasonForm.clearErrors()
     dialog.value = type
 }
@@ -166,6 +167,10 @@ const salin = (teks) => navigator.clipboard?.writeText(teks).catch(() => {})
                 <label class="mt-4 block text-sm font-medium text-ink" for="alasan">{{ dialogs[dialog].label }}</label>
                 <input id="alasan" v-model="reasonForm[dialogs[dialog].field]" type="text" required autofocus :placeholder="dialogs[dialog].placeholder" class="mt-1.5 h-10 w-full rounded-xl px-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
                 <p v-if="reasonForm.errors[dialogs[dialog].field]" class="mt-1 text-xs text-rose-600">{{ reasonForm.errors[dialogs[dialog].field] }}</p>
+                <label v-if="dialog === 'refund'" class="mt-3 flex items-start gap-2 text-sm text-slate-600">
+                    <input v-model="reasonForm.ke_saldo" type="checkbox" :disabled="order.metode_value === 'saldo'" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-accent-600" />
+                    <span>Kembalikan {{ rupiah(order.total) }} ke saldo pembeli<span v-if="order.metode_value === 'saldo'" class="block text-xs text-slate-400">Pesanan dibayar dengan saldo, jadi selalu dikembalikan ke saldo.</span><span v-else class="block text-xs text-slate-400">Bila tidak dicentang, kembalikan dana di luar sistem.</span></span>
+                </label>
                 <div class="mt-5 flex justify-end gap-2">
                     <button type="button" class="h-10 rounded-xl px-4 text-sm font-medium text-slate-600 hover:bg-slate-100" @click="dialog = null">Batal</button>
                     <button type="submit" :disabled="reasonForm.processing" class="h-10 rounded-xl bg-rose-600 px-4 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-50">{{ dialogs[dialog].button }}</button>

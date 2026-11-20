@@ -4,11 +4,14 @@ namespace App\Services\Orders;
 
 use App\Enums\MetodeBayar;
 use App\Enums\OrderStatus;
+use App\Enums\SaldoTipe;
 use App\Models\Order;
 use App\Models\ProductVariant;
 use App\Models\User;
 use App\Services\Payment\PaymentGatewayException;
 use App\Services\Payment\QrismuzClient;
+use App\Services\Saldo\InsufficientSaldoException;
+use App\Services\Saldo\SaldoLedger;
 use App\Services\Settings;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +23,7 @@ class OrderCheckout
         private Settings $settings,
         private QrismuzClient $qrismuz,
         private OrderLifecycle $lifecycle,
+        private SaldoLedger $ledger,
     ) {}
 
     /**
@@ -33,6 +37,8 @@ class OrderCheckout
     public function checkout(User $user, array $quantities, MetodeBayar $metode): Order
     {
         $this->ensureMethodAvailable($metode);
+        // Saldo terbaru menentukan harga reseller (dicek sebelum saldo dipotong)
+        $user->refresh();
 
         $variants = ProductVariant::query()
             ->with('product')
@@ -90,16 +96,24 @@ class OrderCheckout
             ]);
             $order->items()->createMany($items);
 
+            if ($metode === MetodeBayar::Saldo) {
+                try {
+                    $this->ledger->debit($user, $subtotal, SaldoTipe::Belanja, "Bayar {$order->no_invoice}", ['order' => $order]);
+                } catch (InsufficientSaldoException) {
+                    throw ValidationException::withMessages(['metode_bayar' => 'Saldo tidak cukup. Top-up dulu atau pilih QRIS.']);
+                }
+            }
+
             $user->cartItems()->whereIn('product_variant_id', array_keys($quantities))->delete();
 
             return $order;
         });
 
-        if ($metode === MetodeBayar::Qris) {
-            $this->createQrisInvoice($order);
-        }
-
-        return $order;
+        return match ($metode) {
+            MetodeBayar::Qris => tap($order, fn (Order $o) => $this->createQrisInvoice($o)),
+            MetodeBayar::Saldo => $this->lifecycle->markPaid($order),
+            MetodeBayar::Manual => $order,
+        };
     }
 
     /**
@@ -108,7 +122,12 @@ class OrderCheckout
     private function createQrisInvoice(Order $order): void
     {
         try {
-            $transaction = $this->qrismuz->createTransaction($order, route('orders.show', $order));
+            $transaction = $this->qrismuz->createTransaction(
+                $order->no_invoice,
+                $order->subtotal,
+                route('orders.show', $order),
+                ['order_id' => $order->id, 'user_id' => $order->user_id],
+            );
         } catch (PaymentGatewayException $e) {
             $this->lifecycle->cancel($order, 'Gagal membuat tagihan QRIS: '.$e->getMessage());
 
@@ -134,6 +153,7 @@ class OrderCheckout
         $ready = match ($metode) {
             MetodeBayar::Qris => $this->settings->qrisReady(),
             MetodeBayar::Manual => $this->settings->manualReady(),
+            MetodeBayar::Saldo => true,
         };
 
         if (! $ready) {

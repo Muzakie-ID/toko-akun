@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StockController;
 use App\Http\Controllers\Admin\StockImportController;
+use App\Http\Controllers\Admin\TopupController as AdminTopupController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CartController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\QrismuzWebhookController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SaldoController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +35,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/akun', [AccountController::class, 'edit'])->name('account');
     Route::put('/akun', [AccountController::class, 'updateProfile'])->name('account.update');
     Route::put('/akun/password', [AccountController::class, 'updatePassword'])->middleware('throttle:6,1')->name('account.password');
+
+    Route::get('/saldo', [SaldoController::class, 'index'])->name('saldo');
+    Route::post('/saldo/topup', [SaldoController::class, 'storeTopup'])->middleware('throttle:10,1')->name('saldo.topup');
+    Route::get('/saldo/topup/{topup}', [SaldoController::class, 'showTopup'])->name('saldo.topup.show');
 
     Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
     Route::post('/wishlist/{product:slug}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
@@ -84,6 +90,8 @@ Route::middleware(['auth', 'role:admin,karyawan'])->prefix('admin')->name('admin
     Route::put('/varian/{variant}', [ProductVariantController::class, 'update'])->name('variants.update');
     Route::delete('/varian/{variant}', [ProductVariantController::class, 'destroy'])->name('variants.destroy');
 
+    Route::get('/topup', [AdminTopupController::class, 'index'])->name('topups.index');
+
     Route::get('/ulasan', [AdminReviewController::class, 'index'])->name('reviews.index');
     Route::post('/ulasan/{review}/tampil', [AdminReviewController::class, 'toggle'])->name('reviews.toggle');
     Route::delete('/ulasan/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
@@ -103,6 +111,7 @@ Route::middleware(['auth', 'role:admin,karyawan'])->prefix('admin')->name('admin
         Route::get('/pengguna', [UserController::class, 'index'])->name('users.index');
         Route::post('/pengguna', [UserController::class, 'store'])->name('users.store');
         Route::put('/pengguna/{user}/role', [UserController::class, 'updateRole'])->name('users.role');
+        Route::post('/pengguna/{user}/saldo', [UserController::class, 'adjustSaldo'])->name('users.saldo');
 
         Route::get('/pengaturan', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('/pengaturan', [SettingController::class, 'update'])->name('settings.update');

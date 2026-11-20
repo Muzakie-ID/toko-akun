@@ -28,7 +28,9 @@ class Settings
         'manual.rekening' => [],
         'manual.batas_jam' => 24,
         'reseller.otomatis' => true,
-        'reseller.min_belanja' => 1000000,
+        'reseller.min_saldo' => 1000000,
+        'topup.min' => 10000,
+        'topup.max' => 10000000,
     ];
 
     /** @var array<string, mixed>|null */

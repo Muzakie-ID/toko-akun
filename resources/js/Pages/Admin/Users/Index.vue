@@ -25,6 +25,15 @@ const ubahRole = (user, role) => {
     router.put(`/admin/pengguna/${user.id}/role`, { role }, { preserveScroll: true, onError: () => router.reload({ only: ['users'] }) })
 }
 
+const saldoTarget = ref(null)
+const saldoForm = useForm({ jumlah: '', keterangan: '' })
+const bukaSaldo = (u) => {
+    saldoForm.reset()
+    saldoForm.clearErrors()
+    saldoTarget.value = u
+}
+const simpanSaldo = () => saldoForm.post(`/admin/pengguna/${saldoTarget.value.id}/saldo`, { preserveScroll: true, onSuccess: () => (saldoTarget.value = null) })
+
 const showCreate = ref(false)
 const form = useForm({ name: '', email: '', password: '', role: 'karyawan' })
 const create = () => form.post('/admin/pengguna', { preserveScroll: true, onSuccess: () => { form.reset(); showCreate.value = false } })
@@ -86,6 +95,7 @@ const create = () => form.post('/admin/pengguna', { preserveScroll: true, onSucc
                         <tr>
                             <th class="px-5 py-3 font-medium">Nama</th>
                             <th class="px-5 py-3 font-medium">Role</th>
+                            <th class="px-5 py-3 text-right font-medium">Saldo</th>
                             <th class="px-5 py-3 text-right font-medium">Pesanan</th>
                             <th class="px-5 py-3 text-right font-medium">Total belanja</th>
                             <th class="px-5 py-3 font-medium">Bergabung</th>
@@ -103,16 +113,38 @@ const create = () => form.post('/admin/pengguna', { preserveScroll: true, onSucc
                                     <option v-for="r in roles" :key="r.value" :value="r.value">{{ r.label }}</option>
                                 </select>
                             </td>
+                            <td class="px-5 py-3 text-right whitespace-nowrap">
+                                <span class="text-ink">{{ rupiah(u.saldo) }}</span>
+                                <button type="button" class="ml-2 text-xs font-semibold text-accent-600 hover:underline" @click="bukaSaldo(u)">Ubah</button>
+                            </td>
                             <td class="px-5 py-3 text-right text-ink">{{ u.jumlah_pesanan }}</td>
                             <td class="px-5 py-3 text-right text-ink">{{ rupiah(u.total_belanja) }}</td>
                             <td class="px-5 py-3 text-slate-500">{{ u.bergabung }}</td>
                         </tr>
-                        <tr v-if="!users.data.length"><td colspan="5" class="px-5 py-14 text-center text-slate-500">Tidak ada pengguna yang cocok.</td></tr>
+                        <tr v-if="!users.data.length"><td colspan="6" class="px-5 py-14 text-center text-slate-500">Tidak ada pengguna yang cocok.</td></tr>
                     </tbody>
                 </table>
             </div>
             <Pagination :paginator="users" />
         </section>
+
+        <div v-if="saldoTarget" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="dialog" aria-modal="true" aria-label="Penyesuaian saldo" @click.self="saldoTarget = null">
+            <form class="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl" @submit.prevent="simpanSaldo">
+                <h2 class="text-lg font-semibold text-ink">Penyesuaian saldo</h2>
+                <p class="text-sm text-slate-500">{{ saldoTarget.nama }} · saldo sekarang {{ rupiah(saldoTarget.saldo) }}</p>
+                <label class="mt-4 block text-sm font-medium text-ink" for="s-jumlah">Jumlah (Rp)</label>
+                <input id="s-jumlah" v-model.number="saldoForm.jumlah" type="number" required placeholder="50000 untuk menambah, -50000 untuk mengurangi" class="mt-1.5 h-10 w-full rounded-xl px-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
+                <p v-if="saldoForm.errors.jumlah" class="mt-1 text-xs text-rose-600">{{ saldoForm.errors.jumlah }}</p>
+                <label class="mt-3 block text-sm font-medium text-ink" for="s-ket">Keterangan</label>
+                <input id="s-ket" v-model="saldoForm.keterangan" type="text" required placeholder="Kompensasi akun bermasalah" class="mt-1.5 h-10 w-full rounded-xl px-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
+                <p v-if="saldoForm.errors.keterangan" class="mt-1 text-xs text-rose-600">{{ saldoForm.errors.keterangan }}</p>
+                <p class="mt-3 text-xs text-slate-500">Tercatat di riwayat saldo pembeli beserta nama admin.</p>
+                <div class="mt-5 flex justify-end gap-2">
+                    <button type="button" class="h-10 rounded-xl px-4 text-sm font-medium text-slate-600 hover:bg-slate-100" @click="saldoTarget = null">Batal</button>
+                    <button type="submit" :disabled="saldoForm.processing" class="h-10 rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50">Simpan</button>
+                </div>
+            </form>
+        </div>
     </div>
 </template>
 

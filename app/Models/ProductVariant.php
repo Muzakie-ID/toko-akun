@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Enums\JenisAkun;
-use App\Enums\UserRole;
+use App\Services\Saldo\ResellerStatus;
 use Database\Factories\ProductVariantFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -73,11 +73,12 @@ class ProductVariant extends Model
     }
 
     /**
-     * Harga yang berlaku untuk user (reseller dapat harga_reseller bila diisi).
+     * Harga yang berlaku untuk user: harga_reseller bila diisi dan user berstatus reseller
+     * (role reseller atau saldo saat ini >= batas, lihat ResellerStatus).
      */
     public function priceFor(?User $user): int
     {
-        if ($user?->role === UserRole::Reseller && $this->harga_reseller !== null) {
+        if ($this->harga_reseller !== null && app(ResellerStatus::class)->appliesTo($user)) {
             return $this->harga_reseller;
         }
 

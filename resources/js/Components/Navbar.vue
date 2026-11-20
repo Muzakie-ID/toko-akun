@@ -62,6 +62,11 @@ const navLinks = [
                     <Link v-if="isStaff" href="/admin" class="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink sm:block">
                         Panel Admin
                     </Link>
+                    <Link href="/saldo" class="hidden items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-slate-400 sm:flex" aria-label="Saldo">
+                        <Icon icon="heroicons:wallet" class="h-4 w-4 text-slate-500" />
+                        Rp {{ Number(user.saldo ?? 0).toLocaleString('id-ID') }}
+                        <Icon v-if="user.harga_reseller" icon="heroicons:sparkles-solid" class="h-3.5 w-3.5 text-amber-500" aria-label="Harga reseller aktif" />
+                    </Link>
                     <Link href="/wishlist" class="flex items-center rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 hover:text-ink" aria-label="Wishlist">
                         <Icon icon="heroicons:heart" class="h-5 w-5" />
                     </Link>
@@ -121,6 +126,7 @@ const navLinks = [
             </template>
             <template v-else>
                 <Link href="/pesanan" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Pesanan Saya</Link>
+                <Link href="/saldo" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Saldo · Rp {{ Number(user.saldo ?? 0).toLocaleString('id-ID') }}</Link>
                 <Link href="/wishlist" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Wishlist</Link>
                 <Link href="/akun" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Akun Saya</Link>
                 <Link v-if="isStaff" href="/admin" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Panel Admin</Link>

@@ -45,7 +45,9 @@ class CartController extends Controller
 
         return Inertia::render('Cart', [
             'items' => $items,
+            'saldo' => $request->user()->saldo,
             'metode' => array_values(array_filter([
+                ['value' => MetodeBayar::Saldo->value, 'label' => 'Saldo', 'keterangan' => 'Dipotong dari saldo akunmu. Lunas seketika, akun langsung terkirim.'],
                 $settings->qrisReady() ? ['value' => MetodeBayar::Qris->value, 'label' => 'QRIS', 'keterangan' => 'Bayar dari e-wallet atau m-banking apa pun. Akun terkirim otomatis begitu pembayaran masuk.'] : null,
                 $settings->manualReady() ? ['value' => MetodeBayar::Manual->value, 'label' => 'Transfer Bank', 'keterangan' => 'Transfer lalu unggah bukti. Akun dikirim setelah admin memverifikasi (maks. '.$settings->get('manual.batas_jam').' jam).'] : null,
             ])),

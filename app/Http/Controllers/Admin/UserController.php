@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\OrderStatus;
+use App\Enums\SaldoTipe;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\Saldo\InsufficientSaldoException;
+use App\Services\Saldo\SaldoLedger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -40,6 +43,7 @@ class UserController extends Controller
                 'nama' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role->value,
+                'saldo' => $user->saldo,
                 'via_google' => $user->google_id !== null,
                 'jumlah_pesanan' => $user->orders_count,
                 'total_belanja' => (int) $user->total_belanja,
@@ -96,5 +100,29 @@ class UserController extends Controller
     private function roleOptions(): array
     {
         return array_map(fn (UserRole $role): array => ['value' => $role->value, 'label' => ucfirst($role->value)], UserRole::cases());
+    }
+
+    /**
+     * Penyesuaian saldo manual (mis. kompensasi atau refund pesanan QRIS ke saldo). Tercatat di mutasi.
+     */
+    public function adjustSaldo(Request $request, User $user, SaldoLedger $ledger): RedirectResponse
+    {
+        $data = $request->validate([
+            'jumlah' => ['required', 'integer', 'not_in:0', 'between:-100000000,100000000'],
+            'keterangan' => ['required', 'string', 'max:200'],
+        ], ['jumlah.not_in' => 'Jumlah tidak boleh 0.'], ['jumlah' => 'jumlah', 'keterangan' => 'keterangan']);
+
+        $amount = (int) $data['jumlah'];
+        $note = 'Penyesuaian: '.$data['keterangan'];
+
+        try {
+            $amount > 0
+                ? $ledger->credit($user, $amount, SaldoTipe::Penyesuaian, $note, ['by' => $request->user()])
+                : $ledger->debit($user, $amount, SaldoTipe::Penyesuaian, $note, ['by' => $request->user()]);
+        } catch (InsufficientSaldoException) {
+            return back()->with('error', "Saldo {$user->name} tidak cukup untuk dikurangi sebesar itu.");
+        }
+
+        return back()->with('success', "Saldo {$user->name} sekarang Rp".number_format($user->saldo, 0, ',', '.').'.');
     }
 }

@@ -18,6 +18,7 @@ const sections = computed(() => [
         items: [
             { label: 'Dashboard', href: '/admin', icon: 'heroicons:squares-2x2', exact: true },
             { label: 'Pesanan', href: '/admin/pesanan', icon: 'heroicons:shopping-bag', badge: badges.value.pesanan },
+            { label: 'Top-up Saldo', href: '/admin/topup', icon: 'heroicons:wallet' },
             { label: 'Produk', href: '/admin/produk', icon: 'heroicons:cube' },
             { label: 'Kategori', href: '/admin/kategori', icon: 'heroicons:tag' },
             { label: 'Stok Akun', href: '/admin/stok', icon: 'heroicons:key', exactPrefix: '/admin/stok', exclude: '/admin/stok/import', badge: badges.value.menungguStok, badgeTone: 'amber' },

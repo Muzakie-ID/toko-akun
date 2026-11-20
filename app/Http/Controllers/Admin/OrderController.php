@@ -168,7 +168,10 @@ class OrderController extends Controller
 
     public function refund(Request $request, Order $order, OrderLifecycle $lifecycle): RedirectResponse
     {
-        $data = $request->validate(['catatan' => ['required', 'string', 'max:255']], attributes: ['catatan' => 'catatan refund']);
+        $data = $request->validate([
+            'catatan' => ['required', 'string', 'max:255'],
+            'ke_saldo' => ['boolean'],
+        ], attributes: ['catatan' => 'catatan refund']);
 
         $canRefund = in_array($order->status, OrderStatus::paidStatuses(), true)
             || ($order->late_paid_at !== null && in_array($order->status, [OrderStatus::Kedaluwarsa, OrderStatus::Dibatalkan], true));
@@ -177,9 +180,12 @@ class OrderController extends Controller
             return back()->with('error', 'Hanya pesanan yang sudah dibayar yang bisa direfund.');
         }
 
-        $lifecycle->refund($order, $data['catatan']);
+        $toSaldo = $request->boolean('ke_saldo') || $order->metode_bayar === MetodeBayar::Saldo;
+        $lifecycle->refund($order, $data['catatan'], $toSaldo);
 
-        return back()->with('success', 'Pesanan ditandai refund. Kembalikan dana ke pembeli di luar sistem.');
+        return back()->with('success', $toSaldo
+            ? 'Pesanan direfund, dana dikembalikan ke saldo pembeli.'
+            : 'Pesanan ditandai refund. Kembalikan dana ke pembeli di luar sistem.');
     }
 
     public function note(Request $request, Order $order): RedirectResponse

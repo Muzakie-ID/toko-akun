@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Enums\OrderStatus;
 use App\Models\Order;
+use App\Services\Saldo\ResellerStatus;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -23,7 +24,13 @@ class HandleInertiaRequests extends Middleware
                 'menungguStok' => Order::where('status', OrderStatus::Diproses)->count(),
             ] : null,
             'auth' => fn () => $request->user()
-                ? ['user' => ['id' => $request->user()->id, 'name' => $request->user()->name, 'role' => $request->user()->role]]
+                ? ['user' => [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'role' => $request->user()->role,
+                    'saldo' => $request->user()->saldo,
+                    'harga_reseller' => app(ResellerStatus::class)->appliesTo($request->user()),
+                ]]
                 : null,
             'cart_count' => fn () => (int) $request->user()?->cartItems()->sum('qty'),
             'flash' => fn () => [

@@ -10,11 +10,15 @@ enum MetodeBayar: string
     /** Transfer bank manual + upload bukti, diverifikasi admin/karyawan. */
     case Manual = 'manual';
 
+    /** Dipotong dari saldo akun; lunas seketika. */
+    case Saldo = 'saldo';
+
     public function label(): string
     {
         return match ($this) {
             self::Qris => 'QRIS (otomatis)',
             self::Manual => 'Transfer Manual',
+            self::Saldo => 'Saldo',
         };
     }
 }

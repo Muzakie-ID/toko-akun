@@ -4,6 +4,7 @@ namespace App\Services\Orders;
 
 use App\Enums\MetodeBayar;
 use App\Enums\OrderStatus;
+use App\Enums\SaldoTipe;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -11,7 +12,7 @@ use App\Models\StockSlot;
 use App\Notifications\OrderDelivered;
 use App\Services\Payment\PaymentGatewayException;
 use App\Services\Payment\QrismuzClient;
-use App\Services\ResellerPromotion;
+use App\Services\Saldo\SaldoLedger;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -23,7 +24,7 @@ class OrderLifecycle
 {
     public function __construct(
         private QrismuzClient $qrismuz,
-        private ResellerPromotion $resellerPromotion,
+        private SaldoLedger $ledger,
     ) {}
 
     /**
@@ -57,10 +58,7 @@ class OrderLifecycle
             return $order;
         }
 
-        $order = $this->fulfill($order);
-        $this->resellerPromotion->promoteIfEligible($order->user);
-
-        return $order;
+        return $this->fulfill($order);
     }
 
     /**
@@ -186,14 +184,24 @@ class OrderLifecycle
     }
 
     /**
-     * Refund dicatat saja (uang dikembalikan di luar sistem). Slot yang sudah terkirim tetap terpakai.
+     * Refund: bila $toSaldo, total pesanan dikembalikan ke saldo pembeli; selain itu dana dikembalikan
+     * di luar sistem. Pesanan yang dibayar dengan saldo selalu dikembalikan ke saldo.
+     * Slot yang sudah terkirim tetap terpakai.
      */
-    public function refund(Order $order, string $note): Order
+    public function refund(Order $order, string $note, bool $toSaldo = false): Order
     {
-        $order->update([
-            'status' => OrderStatus::Refund,
-            'catatan_admin' => trim($order->catatan_admin."\nRefund: ".$note),
-        ]);
+        $toSaldo = $toSaldo || $order->metode_bayar === MetodeBayar::Saldo;
+
+        DB::transaction(function () use ($order, $note, $toSaldo): void {
+            $order->update([
+                'status' => OrderStatus::Refund,
+                'catatan_admin' => trim($order->catatan_admin."\nRefund".($toSaldo ? ' ke saldo' : '').': '.$note),
+            ]);
+
+            if ($toSaldo) {
+                $this->ledger->credit($order->user, $order->total, SaldoTipe::Refund, "Refund {$order->no_invoice}", ['order' => $order]);
+            }
+        });
 
         return $order;
     }

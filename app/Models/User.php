@@ -31,6 +31,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'saldo' => 'integer',
         ];
     }
 
@@ -57,6 +58,16 @@ class User extends Authenticatable
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function topups(): HasMany
+    {
+        return $this->hasMany(Topup::class);
+    }
+
+    public function saldoMutations(): HasMany
+    {
+        return $this->hasMany(SaldoMutation::class);
     }
 
     public function isStaff(): bool

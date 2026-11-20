@@ -139,24 +139,36 @@ const err = (key) => form.errors[key]
                 </div>
             </section>
 
-            <!-- Reseller otomatis -->
+            <!-- Saldo & reseller -->
             <section class="rounded-2xl bg-white p-5 ring-1 ring-slate-200/70">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                        <h2 class="text-base font-semibold text-ink">Reseller otomatis</h2>
-                        <p class="mt-1 text-sm text-slate-500">Customer otomatis naik menjadi reseller (dapat harga reseller) begitu total belanja lunasnya mencapai batas ini.</p>
+                        <h2 class="text-base font-semibold text-ink">Saldo &amp; harga reseller</h2>
+                        <p class="mt-1 text-sm text-slate-500">Top-up saldo lewat QRIS. Pembeli dengan saldo saat ini &ge; batas mendapat harga reseller (dicek saat checkout, sebelum saldo dipotong).</p>
                     </div>
                     <label class="flex cursor-pointer items-center gap-2 text-sm font-medium text-ink">
                         <input v-model="form.reseller_otomatis" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-accent-600" />
-                        Aktifkan
+                        Harga reseller berdasarkan saldo
                     </label>
                 </div>
-                <div class="mt-4 max-w-xs">
-                    <label class="text-sm font-medium text-ink" for="r-min">Minimal total belanja (Rp)</label>
-                    <input id="r-min" v-model="form.reseller_min_belanja" type="number" min="1000" step="1000" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                    <p v-if="err('reseller_min_belanja')" class="mt-1 text-xs text-rose-600">{{ err('reseller_min_belanja') }}</p>
-                    <p v-else class="mt-1 text-xs text-slate-500">Dihitung dari pesanan lunas (refund tidak dihitung). Role tidak pernah diturunkan otomatis.</p>
+                <div class="mt-4 grid gap-4 sm:grid-cols-3">
+                    <div>
+                        <label class="text-sm font-medium text-ink" for="r-min">Minimal saldo reseller (Rp)</label>
+                        <input id="r-min" v-model="form.reseller_min_saldo" type="number" min="1000" step="1000" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
+                        <p v-if="err('reseller_min_saldo')" class="mt-1 text-xs text-rose-600">{{ err('reseller_min_saldo') }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-ink" for="t-min">Minimal top-up (Rp)</label>
+                        <input id="t-min" v-model="form.topup_min" type="number" min="1000" step="1000" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
+                        <p v-if="err('topup_min')" class="mt-1 text-xs text-rose-600">{{ err('topup_min') }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-ink" for="t-max">Maksimal top-up (Rp)</label>
+                        <input id="t-max" v-model="form.topup_max" type="number" min="1000" step="1000" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
+                        <p v-if="err('topup_max')" class="mt-1 text-xs text-rose-600">{{ err('topup_max') }}</p>
+                    </div>
                 </div>
+                <p class="mt-3 text-xs text-slate-500">Top-up hanya tersedia bila QRIS aktif. Akun dengan role reseller (diatur di Pengguna) selalu mendapat harga reseller.</p>
             </section>
 
             <div class="sticky bottom-4 flex justify-end">

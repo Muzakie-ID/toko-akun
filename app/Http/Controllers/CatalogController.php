@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Review;
+use App\Services\Saldo\ResellerStatus;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -116,7 +117,7 @@ class CatalogController extends Controller
                 'harga_asli' => $variant->harga_asli,
                 'stok' => $variant->available_slots_count,
             ]),
-            'hargaReseller' => $user?->role?->value === 'reseller',
+            'hargaReseller' => app(ResellerStatus::class)->appliesTo($user),
             'ulasan' => [
                 'sebaran' => collect(range(5, 1))->map(fn (int $bintang): array => [
                     'bintang' => $bintang,

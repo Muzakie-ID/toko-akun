@@ -2,7 +2,6 @@
 
 namespace App\Services\Payment;
 
-use App\Models\Order;
 use App\Services\Settings;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
@@ -19,20 +18,23 @@ class QrismuzClient
     public function __construct(private Settings $settings) {}
 
     /**
+     * Buat tagihan QRIS. merchant_ref = no invoice pesanan (INV-) atau top-up (TOP-).
+     *
+     * @param  array<string, mixed>  $metadata
      * @return array{id: string, final_amount: int, unique_code: int, checkout_url: string|null, qr_image_url: string|null, qris_payload: string|null, expires_at: string|null}
      *
      * @throws PaymentGatewayException
      */
-    public function createTransaction(Order $order, string $returnUrl): array
+    public function createTransaction(string $merchantRef, int $amount, string $returnUrl, array $metadata = []): array
     {
         $response = $this->send(fn (PendingRequest $http) => $http
-            ->withHeaders(['Idempotency-Key' => $order->no_invoice])
+            ->withHeaders(['Idempotency-Key' => $merchantRef])
             ->post('/v1/transactions', [
-                'amount' => $order->subtotal,
-                'merchant_ref' => $order->no_invoice,
+                'amount' => $amount,
+                'merchant_ref' => $merchantRef,
                 'expiry_min' => (int) $this->settings->get('qris.expiry_min'),
                 'return_url' => $returnUrl,
-                'metadata' => ['order_id' => $order->id, 'user_id' => $order->user_id],
+                'metadata' => $metadata,
             ]));
 
         return [

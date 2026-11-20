@@ -16,12 +16,16 @@ Marketplace jual-beli akun premium (Netflix, Spotify, ChatGPT, Canva, dst). Cust
 | **Karyawan** | Panel admin **terbatas**: kelola produk, stok kredensial, verifikasi pembayaran. Tidak bisa kelola user/role/pengaturan |
 | **Admin** | Semua akses: user & role, produk, stok, order, laporan, pengaturan |
 
-Registrasi selalu sebagai Customer. Customer **otomatis naik menjadi Reseller** begitu total belanja lunasnya ≥ batas di Pengaturan (default Rp1.000.000); admin juga bisa mengubah role manual. Karyawan dibuat oleh Admin dari panel.
+Registrasi selalu sebagai Customer. **Harga reseller berlaku selama saldo saat ini ≥ Rp1.000.000** (batas di Pengaturan), dicek saat checkout sebelum saldo dipotong; saldo turun di bawah batas = harga normal lagi. Role Reseller yang ditetapkan admin selalu mendapat harga reseller. Karyawan dibuat oleh Admin dari panel.
 
 ## 3. Model Data (ERD)
 
 ```
-users            id, name, email, password, role (admin|customer|reseller|karyawan)
+users            id, name, email, password, role (admin|customer|reseller|karyawan), saldo (rupiah)
+topups           id, user_id, no_invoice (TOP-…), jumlah, kode_unik, total, status (menunggu_bayar|lunas|kedaluwarsa|dibatalkan),
+                 gateway_id, checkout_url, qr_image_url, qris_payload, expires_at, paid_at
+saldo_mutations  id, user_id, tipe (topup|belanja|refund|penyesuaian), jumlah (+/-), saldo_akhir, keterangan,
+                 order_id, topup_id (unik), created_by   -- buku besar saldo
 categories       id, nama, slug            (Streaming, AI Tools, Desain, Office, Cloud, Game, Lainnya)
 products         id, category_id, nama, slug, deskripsi, banner, logo, garansi_hari,
                  rating, total_terjual, is_aktif, is_populer
@@ -67,6 +71,7 @@ Catatan:
 2. Pilih metode bayar (yang aktif di Pengaturan):
    - **QRIS (qris-muz)**: sistem membuat tagihan di gateway qris-muz milik owner (`merchant_ref` = no invoice). Total = `final_amount` (subtotal + kode unik). Halaman pesanan menampilkan QR + hitung mundur dan memperbarui status otomatis.
    - **Transfer manual**: pembeli transfer ke rekening di Pengaturan lalu unggah bukti → `menunggu_verifikasi` → karyawan/admin terima atau tolak (dengan alasan, pembeli bisa unggah ulang).
+   - **Saldo**: dipotong dari saldo akun dalam transaksi yang sama dengan pembuatan pesanan → lunas seketika.
 3. Lunas (webhook `transaction.paid` dengan nominal cocok, atau verifikasi manual) → `diproses` → sistem **otomatis** ambil slot kosong (FIFO per varian, transaksi + lock) → `selesai` + email ke pembeli.
 4. Stok kurang → pesanan tetap `diproses` dan otomatis dilengkapi saat stok varian itu diinput.
 5. Tidak dibayar sampai batas waktu → `kedaluwarsa` (webhook `transaction.expired` atau command `orders:expire` tiap 5 menit).
@@ -89,6 +94,7 @@ Catatan:
 | Keranjang & Checkout | (belum ada desain) | Item, ubah qty, upload bukti bayar |
 | Pesanan Saya | (belum ada desain) | Daftar order, status, **lihat kredensial** (copy email/pass) |
 | Wishlist | — | **Sudah dibuat** (`/wishlist`): ikon hati di kartu & detail produk |
+| Saldo | — | **Sudah dibuat** (`/saldo`): saldo, status/progres harga reseller, top-up QRIS, riwayat mutasi |
 | Akun Saya | — | **Sudah dibuat** (`/akun`): ubah nama/email, ganti password (user Google bisa membuat password tanpa password lama) |
 
 ### Admin/Karyawan (satu panel, beda menu per permission)
@@ -101,6 +107,7 @@ Catatan:
 | Stok Akun | **Sudah dibuat** (`/admin/stok`): daftar + slot terjual per invoice, edit kredensial & info slot (klaim garansi), hapus bila belum terjual |
 | Kategori | **Sudah dibuat** (`/admin/kategori`) |
 | Ulasan | **Sudah dibuat** (`/admin/ulasan`): filter bintang/tampil, sembunyikan, hapus |
+| Top-up Saldo | **Sudah dibuat** (`/admin/topup`): daftar top-up + total masuk bulan ini. Penyesuaian saldo di halaman Pengguna (admin) |
 | User (Admin only) | **Sudah dibuat** (`/admin/pengguna`): ubah role, buat akun karyawan/admin |
 | Pengaturan (Admin only) | **Sudah dibuat** (`/admin/pengaturan`): toko & target, QRIS qris-muz, rekening transfer manual |
 
@@ -115,7 +122,8 @@ Catatan:
 - **Kirim kredensial otomatis** saat order disetujui
 - Pesanan saya + detail kredensial
 - Wishlist, rating & review
-- Harga reseller otomatis berlaku untuk role reseller
+- Harga reseller otomatis berlaku untuk role reseller atau saldo ≥ Rp1.000.000
+- Saldo: top-up QRIS, bayar pakai saldo, refund ke saldo
 - Produk sharing (multi-slot) + klaim garansi manual
 
 ### Fase 2
@@ -126,7 +134,8 @@ Catatan:
 ## 7. Keputusan
 
 1. Garansi → **klaim manual**: admin perbarui kredensial di stok, pembeli lihat otomatis.
-2. Reseller → **level harga** (lebih murah), didapat otomatis saat total belanja lunas ≥ Rp1.000.000 (bisa diubah/dimatikan di Pengaturan). Dicek setiap pesanan lunas + command harian `resellers:promote`; tidak pernah diturunkan otomatis. Multi-level nanti bila perlu.
+2. Reseller → **level harga** (lebih murah) yang dinamis mengikuti saldo saat ini (≥ Rp1.000.000, bisa diubah/dimatikan di Pengaturan), atau permanen lewat role Reseller dari admin. Multi-level nanti bila perlu.
+6. **Saldo**: top-up hanya lewat QRIS qris-muz (min/max di Pengaturan, kode unik tidak ikut masuk saldo; bayar telat tetap dikreditkan). Saldo bisa dipakai bayar (lunas seketika). Refund pesanan bayar-saldo otomatis kembali ke saldo; pesanan lain bisa dipilih refund ke saldo. Admin bisa menyesuaikan saldo manual (tercatat). Saldo tidak bisa ditarik tunai.
 3. Tipe akun **private/sharing** → pilihan varian yang ditentukan admin; sharing lewat multi-slot dengan info per slot.
 5. Durasi bebas dalam hari; stok terpisah per durasi.
 4. Review & rating → **masuk MVP**.

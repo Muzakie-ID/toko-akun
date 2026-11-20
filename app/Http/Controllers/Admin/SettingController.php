@@ -31,7 +31,9 @@ class SettingController extends Controller
                 'manual_rekening' => $settings->get('manual.rekening'),
                 'manual_batas_jam' => $settings->get('manual.batas_jam'),
                 'reseller_otomatis' => (bool) $settings->get('reseller.otomatis'),
-                'reseller_min_belanja' => $settings->get('reseller.min_belanja'),
+                'reseller_min_saldo' => $settings->get('reseller.min_saldo'),
+                'topup_min' => $settings->get('topup.min'),
+                'topup_max' => $settings->get('topup.max'),
             ],
             'secrets' => [
                 'qris_api_key' => $settings->hasSecret('qris.api_key'),
@@ -60,14 +62,18 @@ class SettingController extends Controller
             'manual_rekening.*.nama' => ['required', 'string', 'max:80'],
             'manual_batas_jam' => ['required', 'integer', 'min:1', 'max:168'],
             'reseller_otomatis' => ['boolean'],
-            'reseller_min_belanja' => ['required', 'integer', 'min:1000'],
+            'reseller_min_saldo' => ['required', 'integer', 'min:1000'],
+            'topup_min' => ['required', 'integer', 'min:1000'],
+            'topup_max' => ['required', 'integer', 'gt:topup_min', 'max:100000000'],
         ], [
             'qris_base_url.required_if' => 'URL API gateway wajib diisi bila QRIS diaktifkan.',
         ], [
             'qris_base_url' => 'URL API gateway',
             'qris_expiry_min' => 'masa berlaku tagihan',
             'manual_batas_jam' => 'batas waktu transfer',
-            'reseller_min_belanja' => 'minimal total belanja',
+            'reseller_min_saldo' => 'minimal saldo reseller',
+            'topup_min' => 'minimal top-up',
+            'topup_max' => 'maksimal top-up',
             'manual_rekening.*.bank' => 'nama bank',
             'manual_rekening.*.nomor' => 'nomor rekening',
             'manual_rekening.*.nama' => 'nama pemilik rekening',
@@ -84,7 +90,9 @@ class SettingController extends Controller
             'manual.rekening' => array_values($data['manual_rekening'] ?? []),
             'manual.batas_jam' => (int) $data['manual_batas_jam'],
             'reseller.otomatis' => $request->boolean('reseller_otomatis'),
-            'reseller.min_belanja' => (int) $data['reseller_min_belanja'],
+            'reseller.min_saldo' => (int) $data['reseller_min_saldo'],
+            'topup.min' => (int) $data['topup_min'],
+            'topup.max' => (int) $data['topup_max'],
         ];
 
         foreach (['qris_api_key' => 'qris.api_key', 'qris_webhook_secret' => 'qris.webhook_secret'] as $field => $key) {
