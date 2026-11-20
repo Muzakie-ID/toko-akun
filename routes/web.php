@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductVariantController;
 use App\Http\Controllers\Admin\StockImportController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\QrismuzWebhookController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -14,6 +16,7 @@ Route::get('/produk/{id}', fn (string $id) => Inertia::render('ProductDetail', [
     ->name('product.detail');
 Route::get('/keranjang', fn () => Inertia::render('Cart'))->name('cart');
 Route::get('/pesanan', fn () => Inertia::render('Orders'))->middleware('auth')->name('orders');
+Route::get('/pesanan/{order}', [OrderController::class, 'show'])->middleware('auth')->name('orders.show');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -30,6 +33,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.update');
 });
+
+Route::post('/webhooks/qrismuz', QrismuzWebhookController::class)->middleware('throttle:120,1')->name('webhooks.qrismuz');
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 

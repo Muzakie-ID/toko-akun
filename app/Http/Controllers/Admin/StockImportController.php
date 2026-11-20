@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StockImportRequest;
 use App\Models\ProductVariant;
+use App\Services\Orders\OrderLifecycle;
 use App\Services\StockImporter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,7 +39,7 @@ class StockImportController extends Controller
         ]);
     }
 
-    public function store(StockImportRequest $request, StockImporter $importer): RedirectResponse
+    public function store(StockImportRequest $request, StockImporter $importer, OrderLifecycle $lifecycle): RedirectResponse
     {
         $variant = ProductVariant::findOrFail($request->integer('product_variant_id'));
         $slotDefault = $request->filled('slot_default') ? $request->integer('slot_default') : null;
@@ -53,10 +54,12 @@ class StockImportController extends Controller
         }
 
         $savedCount = $importer->import($rows, $variant, $request->user());
+        $completedOrders = $savedCount > 0 ? $lifecycle->fulfillWaitingOrders([$variant->id]) : 0;
         $rejected = array_values(array_filter($rows, fn (array $row): bool => $row['errors'] !== []));
 
         return back()->with('import_result', [
             'tersimpan' => $savedCount,
+            'pesanan_terkirim' => $completedOrders,
             'ditolak' => array_map(fn (array $row): array => [
                 'baris' => $row['baris'],
                 'email' => $row['email'],

@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
         ]);
 
+        // Webhook gateway diverifikasi lewat tanda tangan HMAC, bukan token CSRF
+        $middleware->validateCsrfTokens(except: ['webhooks/qrismuz']);
+
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
         ]);

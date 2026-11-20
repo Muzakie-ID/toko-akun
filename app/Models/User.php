@@ -8,6 +8,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -37,4 +38,19 @@ class User extends Authenticatable
     protected $attributes = [
         'role' => 'customer',
     ];
+
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(CartItem::class);
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->role->isStaff();
+    }
 }

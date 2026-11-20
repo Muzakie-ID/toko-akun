@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * Satu slot pembeli di sebuah stok. Info = data tambahan per slot (mis. "Profil 2, PIN 1234").
  */
-#[Fillable(['stock_id', 'nomor', 'info'])]
+#[Fillable(['stock_id', 'nomor', 'info', 'order_item_id'])]
 #[Hidden(['info'])]
 class StockSlot extends Model
 {
@@ -33,5 +33,10 @@ class StockSlot extends Model
     public function stock(): BelongsTo
     {
         return $this->belongsTo(Stock::class);
+    }
+
+    public function orderItem(): BelongsTo
+    {
+        return $this->belongsTo(OrderItem::class);
     }
 }

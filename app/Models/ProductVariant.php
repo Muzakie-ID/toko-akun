@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\JenisAkun;
+use App\Enums\UserRole;
 use Database\Factories\ProductVariantFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 /**
  * Satu varian = produk + tipe akun (private/sharing) + durasi. Stok kredensial terikat ke varian.
@@ -28,6 +30,9 @@ class ProductVariant extends Model
         return [
             'jenis_akun' => JenisAkun::class,
             'durasi_hari' => 'integer',
+            'harga' => 'integer',
+            'harga_asli' => 'integer',
+            'harga_reseller' => 'integer',
             'is_aktif' => 'boolean',
         ];
     }
@@ -47,14 +52,35 @@ class ProductVariant extends Model
      */
     protected function durasiLabel(): Attribute
     {
-        return Attribute::get(function (): string {
-            $hari = $this->durasi_hari;
+        return Attribute::get(fn (): string => self::labelDurasi($this->durasi_hari));
+    }
 
-            return match (true) {
-                $hari % 365 === 0 => ($hari / 365).' Tahun',
-                $hari % 30 === 0 => ($hari / 30).' Bulan',
-                default => $hari.' Hari',
-            };
-        });
+    public static function labelDurasi(int $hari): string
+    {
+        return match (true) {
+            $hari % 365 === 0 => ($hari / 365).' Tahun',
+            $hari % 30 === 0 => ($hari / 30).' Bulan',
+            default => $hari.' Hari',
+        };
+    }
+
+    /**
+     * Slot stok yang belum terjual untuk varian ini.
+     */
+    public function availableSlots(): HasManyThrough
+    {
+        return $this->hasManyThrough(StockSlot::class, Stock::class)->whereNull('stock_slots.order_item_id');
+    }
+
+    /**
+     * Harga yang berlaku untuk user (reseller dapat harga_reseller bila diisi).
+     */
+    public function priceFor(?User $user): int
+    {
+        if ($user?->role === UserRole::Reseller && $this->harga_reseller !== null) {
+            return $this->harga_reseller;
+        }
+
+        return $this->harga;
     }
 }
