@@ -21,7 +21,7 @@ const apply = () => router.get('/admin/topup', Object.fromEntries(Object.entries
         <Head title="Top-up Saldo" />
         <div class="flex flex-wrap items-end justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-semibold tracking-tight text-ink">Top-up Saldo</h1>
+                <h1 class="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Top-up Saldo</h1>
                 <p class="mt-1 text-sm text-slate-500">Saldo masuk otomatis lewat webhook QRIS. Koreksi manual dilakukan di halaman Pengguna.</p>
             </div>
             <div class="rounded-2xl bg-white px-5 py-3 ring-1 ring-slate-200/70">
@@ -31,8 +31,8 @@ const apply = () => router.get('/admin/topup', Object.fromEntries(Object.entries
         </div>
 
         <section class="mt-5 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70">
-            <form class="flex flex-wrap gap-3 border-b border-slate-100 p-4" @submit.prevent="apply">
-                <label class="flex h-10 min-w-60 flex-1 items-center gap-2 rounded-xl bg-slate-50 px-3 ring-1 ring-slate-200/70">
+            <form class="flex flex-wrap gap-2 border-b border-slate-100 p-3 sm:gap-3 sm:p-4" @submit.prevent="apply">
+                <label class="flex h-10 w-full min-w-0 sm:min-w-60 sm:flex-1 items-center gap-2 rounded-xl bg-slate-50 px-3 ring-1 ring-slate-200/70">
                     <Icon icon="heroicons:magnifying-glass" class="h-4 w-4 text-slate-400" />
                     <input v-model="filter.q" type="search" placeholder="No. top-up, nama, atau email" aria-label="Cari top-up" class="w-full bg-transparent text-sm focus:outline-none" />
                 </label>
@@ -41,7 +41,22 @@ const apply = () => router.get('/admin/topup', Object.fromEntries(Object.entries
                     <option v-for="s in statuses" :key="s.value" :value="s.value">{{ s.label }}</option>
                 </select>
             </form>
-            <div class="overflow-x-auto">
+            <!-- HP: kartu -->
+            <ul class="divide-y divide-slate-100 md:hidden">
+                <li v-for="t in topups.data" :key="t.invoice" class="flex items-start gap-3 px-4 py-3.5">
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm font-medium text-ink">{{ t.pembeli }}</p>
+                        <p class="truncate text-xs text-slate-500">{{ t.email }}</p>
+                        <p class="mt-0.5 text-[11px] text-slate-400">{{ t.invoice }} · {{ t.tanggal }}</p>
+                    </div>
+                    <div class="flex shrink-0 flex-col items-end gap-1">
+                        <span class="text-sm font-semibold text-ink">{{ rupiah(t.jumlah) }}</span>
+                        <StatusBadge :tone="t.status_tone" :label="t.status_label" />
+                    </div>
+                </li>
+                <li v-if="!topups.data.length" class="px-4 py-14 text-center text-sm text-slate-500">Belum ada top-up.</li>
+            </ul>
+            <div class="hidden overflow-x-auto md:block">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-slate-50 text-xs text-slate-500">
                         <tr>

@@ -21,7 +21,7 @@ const hapus = (c) => confirm(`Hapus kategori ${c.nama}?`) && router.delete(`/adm
 <template>
     <div class="mx-auto max-w-3xl">
         <Head title="Kategori" />
-        <h1 class="text-2xl font-semibold tracking-tight text-ink">Kategori</h1>
+        <h1 class="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Kategori</h1>
         <p class="mt-1 text-sm text-slate-500">Dipakai untuk filter di katalog.</p>
 
         <form class="mt-5 flex gap-2 rounded-2xl bg-white p-4 ring-1 ring-slate-200/70" @submit.prevent="create">
@@ -45,8 +45,8 @@ const hapus = (c) => confirm(`Hapus kategori ${c.nama}?`) && router.delete(`/adm
                 <template v-else>
                     <span class="flex-1 font-medium text-ink">{{ c.nama }}</span>
                     <span class="text-xs text-slate-500">{{ c.products_count }} produk</span>
-                    <button type="button" class="text-xs font-semibold text-accent-600 hover:underline" @click="startEdit(c)">Edit</button>
-                    <button type="button" class="text-xs font-semibold text-rose-600 hover:underline disabled:opacity-30" :disabled="c.products_count > 0" :title="c.products_count ? 'Masih dipakai produk' : ''" @click="hapus(c)">Hapus</button>
+                    <button type="button" class="-my-1 inline-flex min-h-9 items-center px-2 text-xs font-semibold text-accent-600 hover:underline" @click="startEdit(c)">Edit</button>
+                    <button type="button" class="-my-1 inline-flex min-h-9 items-center px-2 text-xs font-semibold text-rose-600 hover:underline disabled:opacity-30" :disabled="c.products_count > 0" :title="c.products_count ? 'Masih dipakai produk' : ''" @click="hapus(c)">Hapus</button>
                 </template>
             </li>
             <li v-if="!categories.length" class="px-5 py-10 text-center text-sm text-slate-500">Belum ada kategori.</li>

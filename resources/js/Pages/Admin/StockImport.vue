@@ -52,7 +52,7 @@ const placeholder = computed(() =>
     <div class="mx-auto max-w-6xl">
         <Head title="Input Stok Massal" />
 
-        <h1 class="text-2xl font-semibold tracking-tight text-ink">Input Stok Massal</h1>
+        <h1 class="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Input Stok Massal</h1>
         <p class="mt-1 text-sm text-slate-500">Tempel daftar akun, cek preview, lalu simpan. Kredensial disimpan terenkripsi.</p>
 
         <div
@@ -158,7 +158,17 @@ const placeholder = computed(() =>
                 <span class="font-semibold text-emerald-700">{{ validCount }} valid</span>
                 <span v-if="invalidCount"> &middot; <span class="font-semibold text-rose-600">{{ invalidCount }} error</span> (tidak akan disimpan)</span>
             </p>
-            <div class="mt-3 overflow-x-auto rounded-2xl bg-white ring-1 ring-slate-200/70">
+            <ul class="mt-3 divide-y divide-slate-100 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70 md:hidden">
+                <li v-for="row in preview" :key="row.baris" class="px-4 py-3" :class="row.errors.length ? 'bg-rose-50/60' : ''">
+                    <div class="flex items-start justify-between gap-3">
+                        <p class="min-w-0 truncate font-mono text-xs text-ink"><span class="font-sans text-slate-400">#{{ row.baris }}</span> {{ row.email || '—' }}</p>
+                        <span class="shrink-0 text-xs" :class="row.errors.length ? 'text-rose-700' : 'font-semibold text-emerald-700'">{{ row.errors.length ? 'Error' : 'OK' }}</span>
+                    </div>
+                    <p class="mt-1 text-xs text-slate-500">Slot {{ row.slot ?? '—' }}<span v-if="row.info.length"> · {{ row.info.join('; ') }}</span></p>
+                    <p v-if="row.errors.length" class="mt-1 text-xs text-rose-700">{{ row.errors.join(' ') }}</p>
+                </li>
+            </ul>
+            <div class="mt-3 hidden overflow-x-auto rounded-2xl bg-white ring-1 ring-slate-200/70 md:block">
                 <table class="w-full text-left text-sm">
                     <thead class="border-b border-slate-200 bg-slate-50 text-xs text-slate-500">
                         <tr>

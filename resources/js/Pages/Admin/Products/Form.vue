@@ -65,11 +65,11 @@ const hapusVarian = (variant) => {
     <div class="mx-auto max-w-6xl">
         <Head :title="product ? `Edit ${product.nama}` : 'Tambah Produk'" />
 
-        <Link href="/admin/produk" class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-ink">
+        <Link href="/admin/produk" class="-my-2 inline-flex items-center gap-1 py-2 text-sm text-slate-500 hover:text-ink">
             <Icon icon="heroicons:arrow-left" class="h-4 w-4" />
             Semua produk
         </Link>
-        <h1 class="mt-2 text-2xl font-semibold tracking-tight text-ink">{{ product ? product.nama : 'Tambah Produk' }}</h1>
+        <h1 class="mt-2 text-xl font-semibold tracking-tight text-ink sm:text-2xl">{{ product ? product.nama : 'Tambah Produk' }}</h1>
 
         <form class="mt-6 grid gap-4 rounded-2xl bg-white ring-1 ring-slate-200/70 p-5 sm:grid-cols-2" @submit.prevent="submit">
             <div>
@@ -151,8 +151,8 @@ const hapusVarian = (variant) => {
                         <span class="text-xs text-slate-500">{{ variant.jumlah_stok }} stok</span>
                         <span v-if="!variant.is_aktif" class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">Nonaktif</span>
                         <span class="ml-auto whitespace-nowrap">
-                            <button type="button" class="text-xs font-semibold text-ink hover:underline" @click="editingId = variant.id">Edit</button>
-                            <button type="button" class="ml-3 text-xs font-semibold text-rose-600 hover:underline" @click="hapusVarian(variant)">Hapus</button>
+                            <button type="button" class="-my-1 inline-flex min-h-9 items-center px-2 text-xs font-semibold text-ink hover:underline" @click="editingId = variant.id">Edit</button>
+                            <button type="button" class="-my-1 inline-flex min-h-9 items-center px-2 text-xs font-semibold text-rose-600 hover:underline" @click="hapusVarian(variant)">Hapus</button>
                         </span>
                     </div>
                 </div>

@@ -31,7 +31,7 @@ const err = (key) => form.errors[key]
 <template>
     <div class="mx-auto max-w-4xl">
         <Head title="Pengaturan" />
-        <h1 class="text-2xl font-semibold tracking-tight text-ink">Pengaturan</h1>
+        <h1 class="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Pengaturan</h1>
 
         <form class="mt-5 space-y-4" @submit.prevent="save">
             <!-- Toko -->

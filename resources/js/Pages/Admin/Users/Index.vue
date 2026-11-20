@@ -43,9 +43,9 @@ const create = () => form.post('/admin/pengguna', { preserveScroll: true, onSucc
     <div>
         <Head title="Pengguna" />
         <div class="flex flex-wrap items-center justify-between gap-3">
-            <h1 class="text-2xl font-semibold tracking-tight text-ink">Pengguna</h1>
+            <h1 class="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Pengguna</h1>
             <button type="button" class="inline-flex h-10 items-center gap-2 rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700" @click="showCreate = !showCreate">
-                <Icon icon="heroicons:user-plus" class="h-4 w-4" /> Buat Akun Staf
+                <Icon icon="heroicons:user-plus" class="h-4 w-4" /> <span class="hidden sm:inline">Buat Akun Staf</span><span class="sm:hidden">Staf Baru</span>
             </button>
         </div>
 
@@ -79,8 +79,8 @@ const create = () => form.post('/admin/pengguna', { preserveScroll: true, onSucc
         </form>
 
         <section class="mt-4 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70">
-            <form class="flex flex-wrap gap-3 border-b border-slate-100 p-4" @submit.prevent="apply">
-                <label class="flex h-10 min-w-60 flex-1 items-center gap-2 rounded-xl bg-slate-50 px-3 ring-1 ring-slate-200/70">
+            <form class="flex flex-wrap gap-2 border-b border-slate-100 p-3 sm:gap-3 sm:p-4" @submit.prevent="apply">
+                <label class="flex h-10 w-full min-w-0 items-center sm:min-w-60 sm:flex-1 gap-2 rounded-xl bg-slate-50 px-3 ring-1 ring-slate-200/70">
                     <Icon icon="heroicons:magnifying-glass" class="h-4 w-4 text-slate-400" />
                     <input v-model="filter.q" type="search" placeholder="Nama atau email" aria-label="Cari pengguna" class="w-full bg-transparent text-sm focus:outline-none" />
                 </label>
@@ -89,7 +89,29 @@ const create = () => form.post('/admin/pengguna', { preserveScroll: true, onSucc
                     <option v-for="r in roles" :key="r.value" :value="r.value">{{ r.label }}</option>
                 </select>
             </form>
-            <div class="overflow-x-auto">
+            <!-- HP: kartu -->
+            <ul class="divide-y divide-slate-100 md:hidden">
+                <li v-for="u in users.data" :key="u.id" class="px-4 py-3.5">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-medium text-ink">{{ u.nama }} <Icon v-if="u.via_google" icon="logos:google-icon" class="ml-0.5 inline h-3 w-3" aria-label="Daftar via Google" /></p>
+                            <p class="truncate text-xs text-slate-500">{{ u.email }}</p>
+                        </div>
+                        <span v-if="u.id === me.id" class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium capitalize" :class="roleTone[u.role]">{{ u.role }} (kamu)</span>
+                        <select v-else :value="u.role" :aria-label="`Role ${u.nama}`" class="h-9 shrink-0 rounded-lg border-0 px-2 text-xs font-medium capitalize ring-1 ring-slate-200 focus:outline-none" :class="roleTone[u.role]" @change="ubahRole(u, $event.target.value)">
+                            <option v-for="r in roles" :key="r.value" :value="r.value">{{ r.label }}</option>
+                        </select>
+                    </div>
+                    <dl class="mt-2 grid grid-cols-3 gap-2 text-xs">
+                        <div><dt class="text-slate-400">Saldo</dt><dd class="font-medium text-ink">{{ rupiah(u.saldo) }}</dd></div>
+                        <div><dt class="text-slate-400">Belanja</dt><dd class="font-medium text-ink">{{ rupiah(u.total_belanja) }}</dd></div>
+                        <div><dt class="text-slate-400">Pesanan</dt><dd class="font-medium text-ink">{{ u.jumlah_pesanan }}</dd></div>
+                    </dl>
+                    <button type="button" class="mt-2 h-9 w-full rounded-lg text-sm font-semibold text-accent-700 ring-1 ring-accent-200" @click="bukaSaldo(u)">Ubah saldo</button>
+                </li>
+                <li v-if="!users.data.length" class="px-4 py-14 text-center text-sm text-slate-500">Tidak ada pengguna yang cocok.</li>
+            </ul>
+            <div class="hidden overflow-x-auto md:block">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-slate-50 text-xs text-slate-500">
                         <tr>

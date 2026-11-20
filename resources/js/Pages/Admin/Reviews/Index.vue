@@ -18,11 +18,11 @@ const hapus = (r) => confirm(`Hapus ulasan dari ${r.pembeli}?`) && router.delete
 <template>
     <div>
         <Head title="Ulasan" />
-        <h1 class="text-2xl font-semibold tracking-tight text-ink">Ulasan</h1>
+        <h1 class="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Ulasan</h1>
         <p class="mt-1 text-sm text-slate-500">Sembunyikan ulasan spam atau kasar; rating produk dihitung ulang otomatis.</p>
 
         <section class="mt-5 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70">
-            <div class="flex flex-wrap gap-3 border-b border-slate-100 p-4">
+            <div class="grid grid-cols-2 gap-2 border-b border-slate-100 p-3 sm:flex sm:gap-3 sm:p-4">
                 <select v-model="filter.rating" aria-label="Filter bintang" class="h-10 rounded-xl bg-white px-3 text-sm ring-1 ring-slate-200 focus:outline-none" @change="apply">
                     <option value="">Semua bintang</option>
                     <option v-for="n in [5, 4, 3, 2, 1]" :key="n" :value="String(n)">{{ n }} bintang</option>
@@ -34,7 +34,7 @@ const hapus = (r) => confirm(`Hapus ulasan dari ${r.pembeli}?`) && router.delete
                 </select>
             </div>
             <ul class="divide-y divide-slate-100">
-                <li v-for="r in reviews.data" :key="r.id" class="flex flex-wrap gap-4 px-5 py-4" :class="{ 'bg-slate-50/70': !r.is_tampil }">
+                <li v-for="r in reviews.data" :key="r.id" class="flex flex-wrap gap-x-4 gap-y-1 px-4 py-4 sm:px-5" :class="{ 'bg-slate-50/70': !r.is_tampil }">
                     <div class="min-w-0 flex-1">
                         <div class="flex flex-wrap items-center gap-2">
                             <StarRating :model-value="r.rating" size="h-3.5 w-3.5" />
@@ -44,9 +44,9 @@ const hapus = (r) => confirm(`Hapus ulasan dari ${r.pembeli}?`) && router.delete
                         <p class="mt-1 text-sm text-slate-600">{{ r.komentar || '—' }}</p>
                         <p class="mt-1 text-xs text-slate-400">{{ r.pembeli }} · <Link :href="`/admin/pesanan/${r.invoice}`" class="hover:text-accent-600">{{ r.invoice }}</Link> · {{ r.tanggal }}</p>
                     </div>
-                    <div class="flex items-start gap-3 text-xs font-semibold whitespace-nowrap">
-                        <button type="button" class="text-accent-600 hover:underline" @click="toggle(r)">{{ r.is_tampil ? 'Sembunyikan' : 'Tampilkan' }}</button>
-                        <button type="button" class="text-rose-600 hover:underline" @click="hapus(r)">Hapus</button>
+                    <div class="-ml-2 flex items-start gap-1 text-xs font-semibold whitespace-nowrap sm:ml-0">
+                        <button type="button" class="-my-1 inline-flex min-h-9 items-center px-2 text-accent-600 hover:underline" @click="toggle(r)">{{ r.is_tampil ? 'Sembunyikan' : 'Tampilkan' }}</button>
+                        <button type="button" class="-my-1 inline-flex min-h-9 items-center px-2 text-rose-600 hover:underline" @click="hapus(r)">Hapus</button>
                     </div>
                 </li>
                 <li v-if="!reviews.data.length" class="px-5 py-14 text-center text-sm text-slate-500">Belum ada ulasan.</li>

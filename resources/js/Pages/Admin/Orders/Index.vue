@@ -26,7 +26,7 @@ const totalSemua = props.statusTabs.reduce((t, s) => t + s.jumlah, 0)
 <template>
     <div>
         <Head title="Pesanan" />
-        <h1 class="text-2xl font-semibold tracking-tight text-ink">Pesanan</h1>
+        <h1 class="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Pesanan</h1>
 
         <!-- Tab status -->
         <div class="mt-4 flex gap-1 overflow-x-auto pb-1" role="tablist">
@@ -51,8 +51,8 @@ const totalSemua = props.statusTabs.reduce((t, s) => t + s.jumlah, 0)
         </div>
 
         <section class="mt-4 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70">
-            <div class="flex flex-wrap items-center gap-3 border-b border-slate-100 p-4">
-                <form class="min-w-60 flex-1" role="search" @submit.prevent="apply()">
+            <div class="flex flex-wrap items-center gap-2 border-b border-slate-100 p-3 sm:gap-3 sm:p-4">
+                <form class="w-full min-w-0 sm:min-w-60 sm:flex-1" role="search" @submit.prevent="apply()">
                     <label class="flex h-10 items-center gap-2 rounded-xl bg-slate-50 px-3 ring-1 ring-slate-200/70 focus-within:ring-accent-300">
                         <Icon icon="heroicons:magnifying-glass" class="h-4 w-4 text-slate-400" />
                         <input v-model="form.q" type="search" placeholder="No. invoice, nama, atau email pembeli" aria-label="Cari pesanan" class="w-full bg-transparent text-sm focus:outline-none" />
@@ -69,7 +69,27 @@ const totalSemua = props.statusTabs.reduce((t, s) => t + s.jumlah, 0)
                 </label>
             </div>
 
-            <div class="overflow-x-auto">
+            <!-- HP: kartu -->
+            <ul class="divide-y divide-slate-100 md:hidden">
+                <li v-for="o in orders.data" :key="o.invoice">
+                    <Link :href="`/admin/pesanan/${o.invoice}`" class="flex items-start gap-3 px-4 py-3.5 active:bg-slate-50">
+                        <div class="min-w-0 flex-1">
+                            <p class="flex items-center gap-1 text-sm font-medium text-ink">
+                                <span class="truncate">{{ o.pembeli }}</span>
+                                <Icon v-if="o.perlu_cek" icon="heroicons:exclamation-triangle-solid" class="h-4 w-4 shrink-0 text-rose-500" aria-label="Perlu dicek" />
+                            </p>
+                            <p class="truncate text-xs text-slate-500">{{ o.produk }} · {{ o.jumlah_item }} akun · {{ o.metode }}</p>
+                            <p class="mt-0.5 text-[11px] text-slate-400">{{ o.invoice }} · {{ o.tanggal }}</p>
+                        </div>
+                        <div class="flex shrink-0 flex-col items-end gap-1">
+                            <span class="text-sm font-semibold text-ink">{{ rupiah(o.total) }}</span>
+                            <StatusBadge :tone="o.status_tone" :label="o.status_label" />
+                        </div>
+                    </Link>
+                </li>
+                <li v-if="!orders.data.length" class="px-4 py-14 text-center text-sm text-slate-500">Tidak ada pesanan yang cocok dengan filter.</li>
+            </ul>
+            <div class="hidden overflow-x-auto md:block">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-slate-50 text-xs text-slate-500">
                         <tr>

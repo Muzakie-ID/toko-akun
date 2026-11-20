@@ -45,11 +45,11 @@ const salin = (teks) => navigator.clipboard?.writeText(teks).catch(() => {})
     <div class="mx-auto max-w-6xl">
         <Head :title="order.invoice" />
 
-        <Link href="/admin/pesanan" class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-ink">
+        <Link href="/admin/pesanan" class="-my-2 inline-flex items-center gap-1 py-2 text-sm text-slate-500 hover:text-ink">
             <Icon icon="heroicons:arrow-left" class="h-4 w-4" /> Semua pesanan
         </Link>
         <div class="mt-2 flex flex-wrap items-center gap-3">
-            <h1 class="text-2xl font-semibold tracking-tight text-ink">{{ order.invoice }}</h1>
+            <h1 class="text-xl font-semibold tracking-tight text-ink sm:text-2xl">{{ order.invoice }}</h1>
             <StatusBadge :tone="order.status_tone" :label="order.status_label" />
         </div>
         <p class="mt-1 text-sm text-slate-500">Dibuat {{ order.tanggal }} · {{ order.metode }}</p>

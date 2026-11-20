@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
+import Pagination from '@/Components/Admin/Pagination.vue'
 
 const props = defineProps({
     products: { type: Object, required: true },
@@ -24,7 +25,7 @@ const hapus = (product) => {
         <Head title="Produk" />
 
         <div class="flex flex-wrap items-center justify-between gap-3">
-            <h1 class="text-2xl font-semibold tracking-tight text-ink">Produk</h1>
+            <h1 class="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Produk</h1>
             <Link href="/admin/produk/create" class="inline-flex h-10 items-center gap-1.5 rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white transition hover:bg-accent-700">
                 <Icon icon="heroicons:plus" class="h-4 w-4" />
                 Tambah Produk
@@ -32,13 +33,33 @@ const hapus = (product) => {
         </div>
 
         <form class="mt-5" role="search" @submit.prevent="submitSearch">
-            <label class="flex h-10 max-w-sm items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 focus-within:ring-2 focus-within:ring-slate-200">
+            <label class="flex h-10 w-full items-center sm:max-w-sm gap-2 rounded-xl border border-slate-300 bg-white px-3 focus-within:ring-2 focus-within:ring-slate-200">
                 <Icon icon="heroicons:magnifying-glass" class="h-4 w-4 text-slate-400" />
                 <input v-model="search" type="search" placeholder="Cari nama produk…" aria-label="Cari produk" class="w-full bg-transparent text-sm text-ink focus:outline-none" />
             </label>
         </form>
 
-        <div class="mt-4 overflow-x-auto rounded-2xl bg-white ring-1 ring-slate-200/70">
+        <div class="mt-4 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70">
+            <!-- HP: kartu -->
+            <ul class="divide-y divide-slate-100 md:hidden">
+                <li v-for="product in products.data" :key="product.id" class="flex items-center gap-3 px-4 py-3">
+                    <Link :href="`/admin/produk/${product.id}/edit`" class="min-w-0 flex-1">
+                        <p class="flex items-center gap-1.5 text-sm font-semibold text-ink">
+                            <span class="truncate">{{ product.nama }}</span>
+                            <span v-if="product.is_populer" class="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">Populer</span>
+                        </p>
+                        <p class="text-xs text-slate-500">{{ product.kategori }} · {{ product.jumlah_varian }} varian · {{ product.jumlah_stok }} stok</p>
+                        <span class="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="product.is_aktif ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'">{{ product.is_aktif ? 'Aktif' : 'Nonaktif' }}</span>
+                    </Link>
+                    <button type="button" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-rose-600 hover:bg-rose-50" :aria-label="`Hapus ${product.nama}`" @click="hapus(product)">
+                        <Icon icon="heroicons:trash" class="h-5 w-5" />
+                    </button>
+                </li>
+                <li v-if="!products.data.length" class="px-4 py-10 text-center text-sm text-slate-500">
+                    {{ filters.q ? `Tidak ada produk yang cocok dengan "${filters.q}".` : 'Belum ada produk.' }}
+                </li>
+            </ul>
+            <div class="hidden overflow-x-auto md:block">
             <table class="w-full text-left text-sm">
                 <thead class="border-b border-slate-200 bg-slate-50 text-xs text-slate-500">
                     <tr>
@@ -76,20 +97,9 @@ const hapus = (product) => {
                     </tr>
                 </tbody>
             </table>
+            </div>
+            <Pagination :paginator="products" />
         </div>
-
-        <nav v-if="products.last_page > 1" class="mt-4 flex flex-wrap gap-1" aria-label="Halaman">
-            <template v-for="link in products.links" :key="link.label">
-                <Link
-                    v-if="link.url"
-                    :href="link.url"
-                    preserve-scroll
-                    class="rounded-lg px-3 py-1.5 text-sm"
-                    :class="link.active ? 'bg-accent-600 font-semibold text-white' : 'text-slate-600 hover:bg-white'"
-                ><span v-html="link.label" /></Link>
-                <span v-else class="px-3 py-1.5 text-sm text-slate-300" v-html="link.label" />
-            </template>
-        </nav>
     </div>
 </template>
 

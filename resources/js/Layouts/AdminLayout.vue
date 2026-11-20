@@ -59,14 +59,19 @@ const logout = () => router.post('/logout')
                 class="fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col bg-white p-4 transition-transform lg:sticky lg:top-4 lg:z-auto lg:h-[calc(100vh-2rem)] lg:translate-x-0 lg:rounded-2xl lg:ring-1 lg:ring-slate-200/70"
                 :class="drawerOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'"
             >
-                <Link href="/admin" class="flex items-center gap-2.5 px-2 py-1.5">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent-400 to-accent-600 text-white shadow-sm">
-                        <Icon icon="heroicons:building-storefront-solid" class="h-5 w-5" />
-                    </span>
-                    <span class="text-lg font-semibold tracking-tight text-ink">akunhaus</span>
-                </Link>
+                <div class="flex items-center justify-between">
+                    <Link href="/admin" class="flex items-center gap-2.5 px-2 py-1.5">
+                        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent-400 to-accent-600 text-white shadow-sm">
+                            <Icon icon="heroicons:building-storefront-solid" class="h-5 w-5" />
+                        </span>
+                        <span class="text-lg font-semibold tracking-tight text-ink">akunhaus</span>
+                    </Link>
+                    <button type="button" class="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 lg:hidden" aria-label="Tutup menu" @click="drawerOpen = false">
+                        <Icon icon="heroicons:x-mark" class="h-5 w-5" />
+                    </button>
+                </div>
 
-                <nav class="mt-6 flex-1 space-y-6 overflow-y-auto" aria-label="Menu admin">
+                <nav class="mt-6 min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain" aria-label="Menu admin">
                     <div v-for="section in sections" :key="section.title">
                         <p class="px-3 text-xs font-medium text-slate-400">{{ section.title }}</p>
                         <ul class="mt-2 space-y-0.5">
@@ -74,7 +79,7 @@ const logout = () => router.post('/logout')
                                 <span v-if="isActive(item)" class="absolute top-1.5 bottom-1.5 -left-4 w-1 rounded-r-full bg-accent-600" aria-hidden="true" />
                                 <Link
                                     :href="item.href"
-                                    class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition"
+                                    class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition lg:py-2"
                                     :class="isActive(item) ? 'bg-accent-50 font-semibold text-ink' : 'text-slate-600 hover:bg-slate-50 hover:text-ink'"
                                     :aria-current="isActive(item) ? 'page' : undefined"
                                 >
@@ -91,7 +96,10 @@ const logout = () => router.post('/logout')
                     </div>
                 </nav>
 
-                <div class="mt-4 rounded-2xl bg-gradient-to-br from-accent-50 to-white p-4 ring-1 ring-accent-100">
+                <Link href="/" class="mt-3 flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-accent-600 text-sm font-semibold text-white lg:hidden">
+                    <Icon icon="heroicons:building-storefront" class="h-4 w-4" /> Buka Toko
+                </Link>
+                <div class="mt-4 hidden shrink-0 rounded-2xl bg-gradient-to-br from-accent-50 to-white p-4 ring-1 ring-accent-100 lg:block">
                     <p class="flex items-center gap-1.5 text-sm font-semibold text-ink">
                         <Icon icon="heroicons:sparkles" class="h-4 w-4 text-accent-600" />
                         Toko kamu
@@ -105,17 +113,21 @@ const logout = () => router.post('/logout')
 
             <!-- Konten -->
             <div class="flex min-w-0 flex-1 flex-col gap-4">
-                <header class="sticky top-0 z-30 flex h-16 items-center gap-3 bg-white px-4 lg:top-4 lg:rounded-2xl lg:ring-1 lg:ring-slate-200/70">
-                    <button type="button" class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden" aria-label="Buka menu" @click="drawerOpen = true">
+                <header class="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-slate-200/70 bg-white px-4 lg:border-b-0 lg:top-4 lg:rounded-2xl lg:ring-1 lg:ring-slate-200/70">
+                    <button type="button" class="-ml-1 flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 lg:hidden" aria-label="Buka menu" @click="drawerOpen = true">
                         <Icon icon="heroicons:bars-3" class="h-5 w-5" />
                     </button>
+                    <Link href="/admin" class="text-base font-semibold tracking-tight text-ink md:hidden">akunhaus</Link>
                     <form class="hidden max-w-md flex-1 md:block" role="search" @submit.prevent="cariPesanan">
                         <label class="flex h-10 items-center gap-2 rounded-xl bg-slate-50 px-3 ring-1 ring-slate-200/70 focus-within:ring-accent-300">
                             <Icon icon="heroicons:magnifying-glass" class="h-4 w-4 text-slate-400" />
                             <input v-model="search" type="search" placeholder="Cari no. invoice atau nama pembeli…" aria-label="Cari pesanan" class="w-full bg-transparent text-sm text-ink placeholder:text-slate-400 focus:outline-none" />
                         </label>
                     </form>
-                    <div class="ml-auto flex items-center gap-2">
+                    <div class="ml-auto flex items-center gap-1.5 sm:gap-2">
+                        <Link href="/admin/pesanan" class="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 ring-1 ring-slate-200/70 hover:bg-slate-50 md:hidden" aria-label="Cari pesanan">
+                            <Icon icon="heroicons:magnifying-glass" class="h-5 w-5" />
+                        </Link>
                         <Link href="/admin/pesanan?status=menunggu_verifikasi" class="relative flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 ring-1 ring-slate-200/70 hover:bg-slate-50" aria-label="Pesanan perlu verifikasi">
                             <Icon icon="heroicons:bell" class="h-5 w-5" />
                             <span v-if="badges.pesanan" class="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
@@ -135,7 +147,7 @@ const logout = () => router.post('/logout')
                     </div>
                 </header>
 
-                <main class="flex-1 px-4 pb-8 lg:px-0">
+                <main class="min-w-0 flex-1 px-4 pb-8 lg:px-0">
                     <div v-if="flash.success" class="mb-4 flex items-start gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800 ring-1 ring-emerald-200" role="status">
                         <Icon icon="heroicons:check-circle" class="mt-0.5 h-4 w-4 shrink-0" />
                         {{ flash.success }}
