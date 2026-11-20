@@ -66,7 +66,7 @@ const diskon = computed(() => {
                     <span v-if="diskon" class="text-xs text-slate-400 line-through">{{ rupiah(product.harga_asli) }}</span>
                     <span v-if="diskon" class="rounded-md bg-rose-100 px-1.5 py-0.5 text-[11px] font-bold text-rose-600">-{{ diskon }}%</span>
                 </div>
-                <span class="relative mt-2.5 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 text-sm font-semibold text-white transition group-hover:bg-brand-700" aria-hidden="true">
+                <span class="relative mt-2.5 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-white transition group-hover:bg-primary-hover" aria-hidden="true">
                     <Icon icon="heroicons:shopping-cart" class="h-4 w-4" />
                     {{ product.stok_ada ? 'Pilih Paket' : 'Lihat Detail' }}
                 </span>

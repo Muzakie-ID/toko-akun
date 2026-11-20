@@ -1,4 +1,5 @@
 <script setup>
+import { UiButton, UiInput } from '@/Components/ui'
 import { Head, router, useForm } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
@@ -24,29 +25,23 @@ const hapus = (c) => confirm(`Hapus kategori ${c.nama}?`) && router.delete(`/adm
         <h1 class="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Kategori</h1>
         <p class="mt-1 text-sm text-slate-500">Dipakai untuk filter di katalog.</p>
 
-        <form class="mt-5 flex gap-2 rounded-2xl bg-white p-4 ring-1 ring-slate-200/70" @submit.prevent="create">
-            <div class="flex-1">
-                <input v-model="createForm.nama" type="text" required placeholder="Nama kategori baru, mis. Musik" aria-label="Nama kategori baru" class="h-10 w-full rounded-xl px-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                <p v-if="createForm.errors.slug || createForm.errors.nama" class="mt-1 text-xs text-rose-600">{{ createForm.errors.slug || createForm.errors.nama }}</p>
-            </div>
-            <button type="submit" :disabled="createForm.processing" class="h-10 rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50">Tambah</button>
+        <form class="mt-5 flex items-start gap-2 rounded-2xl bg-white p-4 ring-1 ring-slate-200/70" @submit.prevent="create">
+            <UiInput v-model="createForm.nama" class="flex-1" required placeholder="Nama kategori baru, mis. Musik" aria-label="Nama kategori baru" :error="createForm.errors.slug || createForm.errors.nama" />
+            <UiButton type="submit" icon="heroicons:plus" :loading="createForm.processing">Tambah</UiButton>
         </form>
 
         <ul class="mt-4 divide-y divide-slate-100 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70">
             <li v-for="c in categories" :key="c.id" class="flex items-center gap-3 px-5 py-3">
                 <form v-if="editingId === c.id" class="flex flex-1 items-start gap-2" @submit.prevent="update">
-                    <div class="flex-1">
-                        <input v-model="editForm.nama" type="text" required aria-label="Nama kategori" class="h-9 w-full rounded-lg px-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <p v-if="editForm.errors.slug || editForm.errors.nama" class="mt-1 text-xs text-rose-600">{{ editForm.errors.slug || editForm.errors.nama }}</p>
-                    </div>
-                    <button type="submit" class="h-9 rounded-lg bg-accent-600 px-3 text-xs font-semibold text-white">Simpan</button>
-                    <button type="button" class="h-9 rounded-lg px-3 text-xs font-medium text-slate-600 hover:bg-slate-100" @click="editingId = null">Batal</button>
+                    <UiInput v-model="editForm.nama" size="sm" class="flex-1" required aria-label="Nama kategori" :error="editForm.errors.slug || editForm.errors.nama" />
+                    <UiButton type="submit" size="sm" :loading="editForm.processing">Simpan</UiButton>
+                    <UiButton variant="ghost" size="sm" @click="editingId = null">Batal</UiButton>
                 </form>
                 <template v-else>
                     <span class="flex-1 font-medium text-ink">{{ c.nama }}</span>
                     <span class="text-xs text-slate-500">{{ c.products_count }} produk</span>
-                    <button type="button" class="-my-1 inline-flex min-h-9 items-center px-2 text-xs font-semibold text-accent-600 hover:underline" @click="startEdit(c)">Edit</button>
-                    <button type="button" class="-my-1 inline-flex min-h-9 items-center px-2 text-xs font-semibold text-rose-600 hover:underline disabled:opacity-30" :disabled="c.products_count > 0" :title="c.products_count ? 'Masih dipakai produk' : ''" @click="hapus(c)">Hapus</button>
+                    <UiButton variant="ghost" size="sm" icon="heroicons:pencil-square" @click="startEdit(c)">Edit</UiButton>
+                    <UiButton variant="ghost" size="sm" icon="heroicons:trash" class="text-rose-600 hover:bg-rose-50 hover:text-rose-700" :disabled="c.products_count > 0" :title="c.products_count ? 'Masih dipakai produk' : ''" @click="hapus(c)">Hapus</UiButton>
                 </template>
             </li>
             <li v-if="!categories.length" class="px-5 py-10 text-center text-sm text-slate-500">Belum ada kategori.</li>

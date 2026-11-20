@@ -1,4 +1,5 @@
 <script setup>
+import { UiButton, UiCheckbox, UiDialog, UiInput, UiTextarea } from '@/Components/ui'
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import StatusBadge from '@/Components/Admin/StatusBadge.vue'
@@ -63,24 +64,12 @@ const salin = (teks) => navigator.clipboard?.writeText(teks).catch(() => {})
 
         <!-- Aksi -->
         <div class="mt-5 flex flex-wrap gap-2">
-            <button v-if="aksi.verifikasi" type="button" class="inline-flex h-10 items-center gap-2 rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700" @click="post('verifikasi', 'Tandai pembayaran diterima dan kirim akun ke pembeli?')">
-                <Icon icon="heroicons:check-badge" class="h-4 w-4" /> Terima Pembayaran
-            </button>
-            <button v-if="aksi.prosesBayarTelat" type="button" class="inline-flex h-10 items-center gap-2 rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700" @click="post('verifikasi', 'Proses pesanan dan kirim akun ke pembeli?')">
-                <Icon icon="heroicons:check-badge" class="h-4 w-4" /> Proses Pesanan
-            </button>
-            <button v-if="aksi.kirimUlang" type="button" class="inline-flex h-10 items-center gap-2 rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700" @click="post('kirim-ulang')">
-                <Icon icon="heroicons:arrow-path" class="h-4 w-4" /> Kirim Akun yang Kurang
-            </button>
-            <button v-if="aksi.tolak" type="button" class="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-rose-600 ring-1 ring-rose-200 hover:bg-rose-50" @click="openDialog('tolak')">
-                <Icon icon="heroicons:x-circle" class="h-4 w-4" /> Tolak Bukti
-            </button>
-            <button v-if="aksi.batal" type="button" class="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50" @click="openDialog('batal')">
-                Batalkan
-            </button>
-            <button v-if="aksi.refund" type="button" class="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50" @click="openDialog('refund')">
-                Tandai Refund
-            </button>
+            <UiButton v-if="aksi.verifikasi" icon="heroicons:check-badge" @click="post('verifikasi', 'Tandai pembayaran diterima dan kirim akun ke pembeli?')">Terima Pembayaran</UiButton>
+            <UiButton v-if="aksi.prosesBayarTelat" icon="heroicons:check-badge" @click="post('verifikasi', 'Proses pesanan dan kirim akun ke pembeli?')">Proses Pesanan</UiButton>
+            <UiButton v-if="aksi.kirimUlang" icon="heroicons:arrow-path" @click="post('kirim-ulang')">Kirim Akun yang Kurang</UiButton>
+            <UiButton v-if="aksi.tolak" variant="danger-soft" icon="heroicons:x-circle" @click="openDialog('tolak')">Tolak Bukti</UiButton>
+            <UiButton v-if="aksi.batal" variant="secondary" icon="heroicons:no-symbol" @click="openDialog('batal')">Batalkan</UiButton>
+            <UiButton v-if="aksi.refund" variant="secondary" icon="heroicons:receipt-refund" @click="openDialog('refund')">Tandai Refund</UiButton>
         </div>
 
         <div class="mt-5 grid gap-4 lg:grid-cols-[1fr_340px]">
@@ -107,9 +96,9 @@ const salin = (teks) => navigator.clipboard?.writeText(teks).catch(() => {})
                                     <p class="text-xs text-slate-500">Password</p>
                                     <p class="font-mono text-ink">{{ shown[item.id] ? item.kredensial.password : '••••••••' }}</p>
                                 </div>
-                                <div class="flex items-end gap-3 text-xs font-semibold">
-                                    <button type="button" class="text-accent-600 hover:underline" @click="shown[item.id] = !shown[item.id]">{{ shown[item.id] ? 'Sembunyikan' : 'Lihat' }}</button>
-                                    <Link :href="`/admin/stok?varian=&email=${encodeURIComponent(item.kredensial.email)}`" class="text-accent-600 hover:underline">Ganti (garansi)</Link>
+                                <div class="flex items-end gap-1">
+                                    <UiButton variant="ghost" size="sm" :icon="shown[item.id] ? 'heroicons:eye-slash' : 'heroicons:eye'" @click="shown[item.id] = !shown[item.id]">{{ shown[item.id] ? 'Sembunyikan' : 'Lihat' }}</UiButton>
+                                    <UiButton :href="`/admin/stok?email=${encodeURIComponent(item.kredensial.email)}`" variant="ghost" size="sm" class="text-primary" icon="heroicons:arrow-path-rounded-square">Ganti (garansi)</UiButton>
                                 </div>
                                 <p v-if="item.kredensial.info" class="text-xs text-slate-600 sm:col-span-3">Info slot: <span class="font-medium text-ink">{{ item.kredensial.info }}</span></p>
                             </div>
@@ -146,37 +135,37 @@ const salin = (teks) => navigator.clipboard?.writeText(teks).catch(() => {})
                     <p class="mt-3 text-sm font-medium text-ink">{{ order.pembeli }} <span class="ml-1 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-500 capitalize">{{ order.pembeli_role }}</span></p>
                     <p class="flex items-center gap-2 text-sm text-slate-500">
                         {{ order.pembeli_email }}
-                        <button type="button" class="text-xs font-semibold text-accent-600" @click="salin(order.pembeli_email)">Salin</button>
+                        <UiButton variant="ghost" size="sm" square class="-my-2 text-primary" icon="heroicons:clipboard-document" label="Salin email pembeli" @click="salin(order.pembeli_email)" />
                     </p>
                 </section>
 
                 <section class="rounded-2xl bg-white p-5 ring-1 ring-slate-200/70">
                     <h2 class="text-base font-semibold text-ink">Catatan admin</h2>
                     <form class="mt-3" @submit.prevent="noteForm.put(`${base}/catatan`, { preserveScroll: true })">
-                        <textarea v-model="noteForm.catatan_admin" rows="5" aria-label="Catatan admin" class="w-full rounded-xl bg-slate-50 p-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <button type="submit" :disabled="noteForm.processing || !noteForm.isDirty" class="mt-2 h-9 rounded-lg bg-ink px-4 text-sm font-semibold text-white disabled:opacity-40">Simpan Catatan</button>
+                        <UiTextarea v-model="noteForm.catatan_admin" rows="5" aria-label="Catatan admin" :error="noteForm.errors.catatan_admin" />
+                        <UiButton type="submit" size="sm" class="mt-2" :loading="noteForm.processing" :disabled="!noteForm.isDirty">Simpan Catatan</UiButton>
                     </form>
                 </section>
             </div>
         </div>
 
         <!-- Dialog alasan -->
-        <div v-if="dialog" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="dialog" aria-modal="true" :aria-label="dialogs[dialog].title" @click.self="dialog = null">
-            <form class="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl" @submit.prevent="submitDialog">
-                <h2 class="text-lg font-semibold text-ink">{{ dialogs[dialog].title }}</h2>
-                <label class="mt-4 block text-sm font-medium text-ink" for="alasan">{{ dialogs[dialog].label }}</label>
-                <input id="alasan" v-model="reasonForm[dialogs[dialog].field]" type="text" required autofocus :placeholder="dialogs[dialog].placeholder" class="mt-1.5 h-10 w-full rounded-xl px-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                <p v-if="reasonForm.errors[dialogs[dialog].field]" class="mt-1 text-xs text-rose-600">{{ reasonForm.errors[dialogs[dialog].field] }}</p>
-                <label v-if="dialog === 'refund'" class="mt-3 flex items-start gap-2 text-sm text-slate-600">
-                    <input v-model="reasonForm.ke_saldo" type="checkbox" :disabled="order.metode_value === 'saldo'" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-accent-600" />
-                    <span>Kembalikan {{ rupiah(order.total) }} ke saldo pembeli<span v-if="order.metode_value === 'saldo'" class="block text-xs text-slate-400">Pesanan dibayar dengan saldo, jadi selalu dikembalikan ke saldo.</span><span v-else class="block text-xs text-slate-400">Bila tidak dicentang, kembalikan dana di luar sistem.</span></span>
-                </label>
-                <div class="mt-5 flex justify-end gap-2">
-                    <button type="button" class="h-10 rounded-xl px-4 text-sm font-medium text-slate-600 hover:bg-slate-100" @click="dialog = null">Batal</button>
-                    <button type="submit" :disabled="reasonForm.processing" class="h-10 rounded-xl bg-rose-600 px-4 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-50">{{ dialogs[dialog].button }}</button>
-                </div>
+        <UiDialog v-if="dialog" :title="dialogs[dialog].title" @close="dialog = null">
+            <form id="alasan-form" class="space-y-3" @submit.prevent="submitDialog">
+                <UiInput v-model="reasonForm[dialogs[dialog].field]" :label="dialogs[dialog].label" required autofocus :placeholder="dialogs[dialog].placeholder" :error="reasonForm.errors[dialogs[dialog].field]" />
+                <UiCheckbox
+                    v-if="dialog === 'refund'"
+                    v-model="reasonForm.ke_saldo"
+                    :disabled="order.metode_value === 'saldo'"
+                    :label="`Kembalikan ${rupiah(order.total)} ke saldo pembeli`"
+                    :hint="order.metode_value === 'saldo' ? 'Pesanan dibayar dengan saldo, jadi selalu dikembalikan ke saldo.' : 'Bila tidak dicentang, kembalikan dana di luar sistem.'"
+                />
             </form>
-        </div>
+            <template #footer>
+                <UiButton variant="ghost" @click="dialog = null">Batal</UiButton>
+                <UiButton type="submit" form="alasan-form" variant="danger" :loading="reasonForm.processing">{{ dialogs[dialog].button }}</UiButton>
+            </template>
+        </UiDialog>
     </div>
 </template>
 

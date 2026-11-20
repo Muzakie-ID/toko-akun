@@ -1,4 +1,5 @@
 <script setup>
+import { UiSearch, UiSelect } from '@/Components/ui'
 import { Head, router } from '@inertiajs/vue3'
 import { reactive } from 'vue'
 import Pagination from '@/Components/Admin/Pagination.vue'
@@ -31,16 +32,10 @@ const apply = () => router.get('/admin/topup', Object.fromEntries(Object.entries
         </div>
 
         <section class="mt-5 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70">
-            <form class="flex flex-wrap gap-2 border-b border-slate-100 p-3 sm:gap-3 sm:p-4" @submit.prevent="apply">
-                <label class="flex h-10 w-full min-w-0 sm:min-w-60 sm:flex-1 items-center gap-2 rounded-xl bg-slate-50 px-3 ring-1 ring-slate-200/70">
-                    <Icon icon="heroicons:magnifying-glass" class="h-4 w-4 text-slate-400" />
-                    <input v-model="filter.q" type="search" placeholder="No. top-up, nama, atau email" aria-label="Cari top-up" class="w-full bg-transparent text-sm focus:outline-none" />
-                </label>
-                <select v-model="filter.status" aria-label="Filter status" class="h-10 rounded-xl bg-white px-3 text-sm ring-1 ring-slate-200 focus:outline-none" @change="apply">
-                    <option value="">Semua status</option>
-                    <option v-for="s in statuses" :key="s.value" :value="s.value">{{ s.label }}</option>
-                </select>
-            </form>
+            <div class="flex flex-wrap gap-2 border-b border-slate-100 p-3 sm:gap-3 sm:p-4">
+                <UiSearch v-model="filter.q" class="sm:min-w-60 sm:flex-1" label="Cari top-up" placeholder="No. top-up, nama, atau email" @search="apply" />
+                <UiSelect v-model="filter.status" class="sm:w-48" aria-label="Filter status" placeholder="Semua status" :options="statuses" @change="apply" />
+            </div>
             <!-- HP: kartu -->
             <ul class="divide-y divide-slate-100 md:hidden">
                 <li v-for="t in topups.data" :key="t.invoice" class="flex items-start gap-3 px-4 py-3.5">

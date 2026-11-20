@@ -1,4 +1,5 @@
 <script setup>
+import { UiButton, UiDialog, UiInput, UiSearch, UiSelect } from '@/Components/ui'
 import { Head, router, useForm, usePage } from '@inertiajs/vue3'
 import { reactive, ref } from 'vue'
 import Pagination from '@/Components/Admin/Pagination.vue'
@@ -44,51 +45,23 @@ const create = () => form.post('/admin/pengguna', { preserveScroll: true, onSucc
         <Head title="Pengguna" />
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Pengguna</h1>
-            <button type="button" class="inline-flex h-10 items-center gap-2 rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700" @click="showCreate = !showCreate">
-                <Icon icon="heroicons:user-plus" class="h-4 w-4" /> <span class="hidden sm:inline">Buat Akun Staf</span><span class="sm:hidden">Staf Baru</span>
-            </button>
+            <UiButton icon="heroicons:user-plus" :aria-expanded="showCreate" @click="showCreate = !showCreate"><span class="hidden sm:inline">Buat Akun Staf</span><span class="sm:hidden">Staf Baru</span></UiButton>
         </div>
 
-        <form v-if="showCreate" class="mt-4 grid gap-3 rounded-2xl bg-white p-5 ring-1 ring-slate-200/70 sm:grid-cols-2 lg:grid-cols-5" @submit.prevent="create">
-            <div>
-                <label class="text-xs font-medium text-slate-600" for="u-nama">Nama</label>
-                <input id="u-nama" v-model="form.name" type="text" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                <p v-if="form.errors.name" class="mt-1 text-xs text-rose-600">{{ form.errors.name }}</p>
-            </div>
-            <div>
-                <label class="text-xs font-medium text-slate-600" for="u-email">Email</label>
-                <input id="u-email" v-model="form.email" type="email" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                <p v-if="form.errors.email" class="mt-1 text-xs text-rose-600">{{ form.errors.email }}</p>
-            </div>
-            <div>
-                <label class="text-xs font-medium text-slate-600" for="u-pass">Password awal</label>
-                <input id="u-pass" v-model="form.password" type="text" required minlength="8" class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                <p v-if="form.errors.password" class="mt-1 text-xs text-rose-600">{{ form.errors.password }}</p>
-            </div>
-            <div>
-                <label class="text-xs font-medium text-slate-600" for="u-role">Role</label>
-                <select id="u-role" v-model="form.role" class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none">
-                    <option value="karyawan">Karyawan</option>
-                    <option value="admin">Admin</option>
-                </select>
-            </div>
-            <div class="flex items-end">
-                <button type="submit" :disabled="form.processing" class="h-10 w-full rounded-xl bg-ink text-sm font-semibold text-white disabled:opacity-50">Buat Akun</button>
-            </div>
-            <p class="text-xs text-slate-500 sm:col-span-2 lg:col-span-5">Karyawan bisa kelola produk, stok, dan pesanan. Pengguna & pengaturan hanya untuk admin.</p>
+        <form v-if="showCreate" class="mt-4 grid gap-4 rounded-2xl bg-white p-4 ring-1 ring-slate-200/70 sm:grid-cols-2 sm:p-5 lg:grid-cols-4" @submit.prevent="create">
+            <UiInput v-model="form.name" label="Nama" required :error="form.errors.name" />
+            <UiInput v-model="form.email" label="Email" type="email" required :error="form.errors.email" />
+            <UiInput v-model="form.password" label="Password awal" required minlength="8" :error="form.errors.password" />
+            <UiSelect v-model="form.role" label="Role" :options="[{ value: 'karyawan', label: 'Karyawan' }, { value: 'admin', label: 'Admin' }]" :error="form.errors.role" />
+            <p class="text-xs text-slate-500 sm:col-span-2 lg:col-span-3">Karyawan bisa kelola produk, stok, dan pesanan. Pengguna &amp; pengaturan hanya untuk admin.</p>
+            <UiButton type="submit" :loading="form.processing" class="sm:justify-self-end lg:col-span-1 lg:w-full">Buat Akun</UiButton>
         </form>
 
         <section class="mt-4 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70">
-            <form class="flex flex-wrap gap-2 border-b border-slate-100 p-3 sm:gap-3 sm:p-4" @submit.prevent="apply">
-                <label class="flex h-10 w-full min-w-0 items-center sm:min-w-60 sm:flex-1 gap-2 rounded-xl bg-slate-50 px-3 ring-1 ring-slate-200/70">
-                    <Icon icon="heroicons:magnifying-glass" class="h-4 w-4 text-slate-400" />
-                    <input v-model="filter.q" type="search" placeholder="Nama atau email" aria-label="Cari pengguna" class="w-full bg-transparent text-sm focus:outline-none" />
-                </label>
-                <select v-model="filter.role" aria-label="Filter role" class="h-10 rounded-xl bg-white px-3 text-sm ring-1 ring-slate-200 focus:outline-none" @change="apply">
-                    <option value="">Semua role</option>
-                    <option v-for="r in roles" :key="r.value" :value="r.value">{{ r.label }}</option>
-                </select>
-            </form>
+            <div class="flex flex-wrap gap-2 border-b border-slate-100 p-3 sm:gap-3 sm:p-4">
+                <UiSearch v-model="filter.q" class="sm:min-w-60 sm:flex-1" label="Cari pengguna" placeholder="Nama atau email" @search="apply" />
+                <UiSelect v-model="filter.role" class="sm:w-44" aria-label="Filter role" placeholder="Semua role" :options="roles" @change="apply" />
+            </div>
             <!-- HP: kartu -->
             <ul class="divide-y divide-slate-100 md:hidden">
                 <li v-for="u in users.data" :key="u.id" class="px-4 py-3.5">
@@ -98,16 +71,14 @@ const create = () => form.post('/admin/pengguna', { preserveScroll: true, onSucc
                             <p class="truncate text-xs text-slate-500">{{ u.email }}</p>
                         </div>
                         <span v-if="u.id === me.id" class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium capitalize" :class="roleTone[u.role]">{{ u.role }} (kamu)</span>
-                        <select v-else :value="u.role" :aria-label="`Role ${u.nama}`" class="h-9 shrink-0 rounded-lg border-0 px-2 text-xs font-medium capitalize ring-1 ring-slate-200 focus:outline-none" :class="roleTone[u.role]" @change="ubahRole(u, $event.target.value)">
-                            <option v-for="r in roles" :key="r.value" :value="r.value">{{ r.label }}</option>
-                        </select>
+                        <UiSelect v-else :model-value="u.role" size="sm" class="w-32 shrink-0" :aria-label="`Role ${u.nama}`" :options="roles" @change="ubahRole(u, $event.target.value)" />
                     </div>
                     <dl class="mt-2 grid grid-cols-3 gap-2 text-xs">
                         <div><dt class="text-slate-400">Saldo</dt><dd class="font-medium text-ink">{{ rupiah(u.saldo) }}</dd></div>
                         <div><dt class="text-slate-400">Belanja</dt><dd class="font-medium text-ink">{{ rupiah(u.total_belanja) }}</dd></div>
                         <div><dt class="text-slate-400">Pesanan</dt><dd class="font-medium text-ink">{{ u.jumlah_pesanan }}</dd></div>
                     </dl>
-                    <button type="button" class="mt-2 h-9 w-full rounded-lg text-sm font-semibold text-accent-700 ring-1 ring-accent-200" @click="bukaSaldo(u)">Ubah saldo</button>
+                    <UiButton variant="secondary" size="sm" block class="mt-2" icon="heroicons:wallet" @click="bukaSaldo(u)">Ubah saldo</UiButton>
                 </li>
                 <li v-if="!users.data.length" class="px-4 py-14 text-center text-sm text-slate-500">Tidak ada pengguna yang cocok.</li>
             </ul>
@@ -131,13 +102,11 @@ const create = () => form.post('/admin/pengguna', { preserveScroll: true, onSucc
                             </td>
                             <td class="px-5 py-3">
                                 <span v-if="u.id === me.id" class="rounded-full px-2.5 py-1 text-xs font-medium capitalize" :class="roleTone[u.role]">{{ u.role }} (kamu)</span>
-                                <select v-else :value="u.role" :aria-label="`Role ${u.nama}`" class="h-8 rounded-lg border-0 px-2 text-xs font-medium capitalize ring-1 ring-slate-200 focus:outline-none" :class="roleTone[u.role]" @change="ubahRole(u, $event.target.value)">
-                                    <option v-for="r in roles" :key="r.value" :value="r.value">{{ r.label }}</option>
-                                </select>
+                                <UiSelect v-else :model-value="u.role" size="sm" class="w-32" :aria-label="`Role ${u.nama}`" :options="roles" @change="ubahRole(u, $event.target.value)" />
                             </td>
                             <td class="px-5 py-3 text-right whitespace-nowrap">
                                 <span class="text-ink">{{ rupiah(u.saldo) }}</span>
-                                <button type="button" class="ml-2 text-xs font-semibold text-accent-600 hover:underline" @click="bukaSaldo(u)">Ubah</button>
+                                <UiButton variant="ghost" size="sm" square icon="heroicons:pencil-square" class="-my-2 ml-1 text-primary" :label="`Ubah saldo ${u.nama}`" @click="bukaSaldo(u)" />
                             </td>
                             <td class="px-5 py-3 text-right text-ink">{{ u.jumlah_pesanan }}</td>
                             <td class="px-5 py-3 text-right text-ink">{{ rupiah(u.total_belanja) }}</td>
@@ -150,23 +119,16 @@ const create = () => form.post('/admin/pengguna', { preserveScroll: true, onSucc
             <Pagination :paginator="users" />
         </section>
 
-        <div v-if="saldoTarget" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="dialog" aria-modal="true" aria-label="Penyesuaian saldo" @click.self="saldoTarget = null">
-            <form class="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl" @submit.prevent="simpanSaldo">
-                <h2 class="text-lg font-semibold text-ink">Penyesuaian saldo</h2>
-                <p class="text-sm text-slate-500">{{ saldoTarget.nama }} · saldo sekarang {{ rupiah(saldoTarget.saldo) }}</p>
-                <label class="mt-4 block text-sm font-medium text-ink" for="s-jumlah">Jumlah (Rp)</label>
-                <input id="s-jumlah" v-model.number="saldoForm.jumlah" type="number" required placeholder="50000 untuk menambah, -50000 untuk mengurangi" class="mt-1.5 h-10 w-full rounded-xl px-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                <p v-if="saldoForm.errors.jumlah" class="mt-1 text-xs text-rose-600">{{ saldoForm.errors.jumlah }}</p>
-                <label class="mt-3 block text-sm font-medium text-ink" for="s-ket">Keterangan</label>
-                <input id="s-ket" v-model="saldoForm.keterangan" type="text" required placeholder="Kompensasi akun bermasalah" class="mt-1.5 h-10 w-full rounded-xl px-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                <p v-if="saldoForm.errors.keterangan" class="mt-1 text-xs text-rose-600">{{ saldoForm.errors.keterangan }}</p>
-                <p class="mt-3 text-xs text-slate-500">Tercatat di riwayat saldo pembeli beserta nama admin.</p>
-                <div class="mt-5 flex justify-end gap-2">
-                    <button type="button" class="h-10 rounded-xl px-4 text-sm font-medium text-slate-600 hover:bg-slate-100" @click="saldoTarget = null">Batal</button>
-                    <button type="submit" :disabled="saldoForm.processing" class="h-10 rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50">Simpan</button>
-                </div>
+        <UiDialog v-if="saldoTarget" title="Penyesuaian saldo" :description="`${saldoTarget.nama} · saldo sekarang ${rupiah(saldoTarget.saldo)}`" @close="saldoTarget = null">
+            <form id="saldo-form" class="space-y-4" @submit.prevent="simpanSaldo">
+                <UiInput v-model.number="saldoForm.jumlah" label="Jumlah (Rp)" type="number" required placeholder="50000 untuk menambah, -50000 untuk mengurangi" :error="saldoForm.errors.jumlah" />
+                <UiInput v-model="saldoForm.keterangan" label="Keterangan" required placeholder="Kompensasi akun bermasalah" :error="saldoForm.errors.keterangan" hint="Tercatat di riwayat saldo pembeli beserta nama admin." />
             </form>
-        </div>
+            <template #footer>
+                <UiButton variant="ghost" @click="saldoTarget = null">Batal</UiButton>
+                <UiButton type="submit" form="saldo-form" :loading="saldoForm.processing">Simpan</UiButton>
+            </template>
+        </UiDialog>
     </div>
 </template>
 

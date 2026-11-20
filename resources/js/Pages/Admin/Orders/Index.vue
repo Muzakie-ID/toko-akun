@@ -1,4 +1,5 @@
 <script setup>
+import { UiCheckbox, UiChip, UiSearch, UiSelect } from '@/Components/ui'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { reactive } from 'vue'
 import Pagination from '@/Components/Admin/Pagination.vue'
@@ -29,44 +30,16 @@ const totalSemua = props.statusTabs.reduce((t, s) => t + s.jumlah, 0)
         <h1 class="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Pesanan</h1>
 
         <!-- Tab status -->
-        <div class="mt-4 flex gap-1 overflow-x-auto pb-1" role="tablist">
-            <button
-                type="button"
-                role="tab"
-                :aria-selected="!form.status"
-                class="shrink-0 rounded-full px-4 py-2 text-sm font-medium transition"
-                :class="!form.status ? 'bg-ink text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'"
-                @click="apply({ status: '' })"
-            >Semua <span class="ml-1 opacity-60">{{ totalSemua }}</span></button>
-            <button
-                v-for="tab in statusTabs"
-                :key="tab.value"
-                type="button"
-                role="tab"
-                :aria-selected="form.status === tab.value"
-                class="shrink-0 rounded-full px-4 py-2 text-sm font-medium transition"
-                :class="form.status === tab.value ? 'bg-ink text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'"
-                @click="apply({ status: tab.value })"
-            >{{ tab.label }} <span class="ml-1 opacity-60">{{ tab.jumlah }}</span></button>
+        <div class="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]" role="tablist" aria-label="Status pesanan">
+            <UiChip role="tab" :active="!form.status" :count="totalSemua" @click="apply({ status: '' })">Semua</UiChip>
+            <UiChip v-for="tab in statusTabs" :key="tab.value" role="tab" :active="form.status === tab.value" :count="tab.jumlah" @click="apply({ status: tab.value })">{{ tab.label }}</UiChip>
         </div>
 
         <section class="mt-4 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70">
             <div class="flex flex-wrap items-center gap-2 border-b border-slate-100 p-3 sm:gap-3 sm:p-4">
-                <form class="w-full min-w-0 sm:min-w-60 sm:flex-1" role="search" @submit.prevent="apply()">
-                    <label class="flex h-10 items-center gap-2 rounded-xl bg-slate-50 px-3 ring-1 ring-slate-200/70 focus-within:ring-accent-300">
-                        <Icon icon="heroicons:magnifying-glass" class="h-4 w-4 text-slate-400" />
-                        <input v-model="form.q" type="search" placeholder="No. invoice, nama, atau email pembeli" aria-label="Cari pesanan" class="w-full bg-transparent text-sm focus:outline-none" />
-                    </label>
-                </form>
-                <select v-model="form.metode" aria-label="Metode bayar" class="h-10 rounded-xl bg-white px-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" @change="apply()">
-                    <option value="">Semua metode</option>
-                    <option value="qris">QRIS</option>
-                    <option value="manual">Transfer manual</option>
-                </select>
-                <label class="flex h-10 items-center gap-2 rounded-xl px-3 text-sm text-slate-600 ring-1 ring-slate-200">
-                    <input v-model="form.perlu_cek" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-accent-600" @change="apply()" />
-                    Perlu dicek
-                </label>
+                <UiSearch v-model="form.q" class="sm:min-w-60 sm:flex-1" label="Cari pesanan" placeholder="No. invoice, nama, atau email pembeli" @search="apply()" />
+                <UiSelect v-model="form.metode" class="sm:w-48" aria-label="Metode bayar" :options="[{ value: '', label: 'Semua metode' }, { value: 'qris', label: 'QRIS' }, { value: 'manual', label: 'Transfer manual' }, { value: 'saldo', label: 'Saldo' }]" @change="apply()" />
+                <UiCheckbox v-model="form.perlu_cek" label="Perlu dicek" class="h-11 rounded-xl px-3 ring-1 ring-slate-300 ring-inset" @change="apply()" />
             </div>
 
             <!-- HP: kartu -->

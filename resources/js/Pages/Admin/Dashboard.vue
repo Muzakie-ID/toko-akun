@@ -6,6 +6,7 @@ import StatCard from '@/Components/Admin/StatCard.vue'
 import StatusBadge from '@/Components/Admin/StatusBadge.vue'
 import TargetGauge from '@/Components/Admin/TargetGauge.vue'
 import Countdown from '@/Components/Countdown.vue'
+import { UiButton } from '@/Components/ui'
 import { rupiah } from '@/lib/format'
 
 const props = defineProps({
@@ -39,10 +40,7 @@ const tindakan = computed(() => [
                 <h1 class="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Selamat datang, {{ user?.name?.split(' ')[0] }}!</h1>
                 <p class="mt-1 text-sm text-slate-500 capitalize">{{ hariIni }}</p>
             </div>
-            <Link href="/admin/pesanan" class="hidden h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-medium text-ink ring-1 ring-slate-200 hover:bg-slate-50 sm:inline-flex">
-                <Icon icon="heroicons:shopping-bag" class="h-4 w-4" />
-                Semua Pesanan
-            </Link>
+            <UiButton href="/admin/pesanan" variant="secondary" icon="heroicons:shopping-bag" class="hidden sm:inline-flex">Semua Pesanan</UiButton>
         </div>
 
         <!-- Kartu statistik -->
@@ -126,7 +124,7 @@ const tindakan = computed(() => [
             <section class="overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70">
                 <div class="flex items-center justify-between px-4 pt-4 pb-2 sm:px-5 sm:pt-5 sm:pb-3">
                     <h2 class="text-base font-semibold text-ink">Pesanan Terbaru</h2>
-                    <Link href="/admin/pesanan" class="-my-2 py-2 text-sm font-medium text-accent-600 hover:underline">Lihat semua</Link>
+                    <UiButton href="/admin/pesanan" variant="link" icon-right="heroicons:arrow-right">Lihat semua</UiButton>
                 </div>
                 <!-- HP: kartu -->
                 <ul class="divide-y divide-slate-100 md:hidden">
@@ -174,7 +172,7 @@ const tindakan = computed(() => [
             <section class="rounded-2xl bg-white p-5 ring-1 ring-slate-200/70">
                 <div class="flex items-center justify-between">
                     <h2 class="text-base font-semibold text-ink">Stok Menipis</h2>
-                    <Link href="/admin/stok/import" class="-my-2 py-2 text-sm font-medium text-accent-600 hover:underline">Tambah stok</Link>
+                    <UiButton href="/admin/stok/import" variant="link" icon="heroicons:plus">Tambah stok</UiButton>
                 </div>
                 <ul class="mt-3 divide-y divide-slate-100">
                     <li v-for="s in stokMenipis" :key="s.id" class="flex items-center gap-3 py-2.5">

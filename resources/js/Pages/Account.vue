@@ -1,5 +1,6 @@
 <script setup>
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
+import { UiButton, UiInput } from '@/Components/ui'
 import { rupiah } from '@/lib/format'
 
 const props = defineProps({ akun: { type: Object, required: true } })
@@ -23,9 +24,7 @@ const logout = () => router.post('/logout')
                     <span v-if="akun.role === 'reseller'" class="ml-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-xs font-semibold text-amber-700">Reseller</span>
                 </p>
             </div>
-            <button type="button" class="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 px-4 text-sm font-medium text-slate-600 hover:bg-slate-50" @click="logout">
-                <Icon icon="heroicons:arrow-right-start-on-rectangle" class="h-4 w-4" /> Keluar
-            </button>
+            <UiButton variant="secondary" icon="heroicons:arrow-right-start-on-rectangle" @click="logout">Keluar</UiButton>
         </div>
 
         <div class="mt-6 grid gap-3 sm:grid-cols-3">
@@ -46,41 +45,29 @@ const logout = () => router.post('/logout')
         <form class="mt-6 rounded-2xl border border-slate-200 p-5" @submit.prevent="simpanProfil">
             <h2 class="text-base font-semibold text-ink">Profil</h2>
             <div class="mt-4 grid gap-4 sm:grid-cols-2">
-                <div>
-                    <label for="name" class="text-sm font-medium text-ink">Nama</label>
-                    <input id="name" v-model="profil.name" type="text" required autocomplete="name" class="mt-1.5 h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none" />
-                    <p v-if="profil.errors.name" class="mt-1 text-xs text-rose-600">{{ profil.errors.name }}</p>
-                </div>
-                <div>
-                    <label for="email" class="text-sm font-medium text-ink">Email</label>
-                    <input id="email" v-model="profil.email" type="email" required autocomplete="email" class="mt-1.5 h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none" />
-                    <p v-if="profil.errors.email" class="mt-1 text-xs text-rose-600">{{ profil.errors.email }}</p>
-                    <p v-else-if="akun.via_google" class="mt-1 text-xs text-slate-500">Terhubung dengan Google; login Google tetap berfungsi walau email diganti.</p>
-                </div>
+                <UiInput v-model="profil.name" label="Nama" required autocomplete="name" :error="profil.errors.name" />
+                <UiInput
+                    v-model="profil.email"
+                    label="Email"
+                    type="email"
+                    required
+                    autocomplete="email"
+                    :error="profil.errors.email"
+                    :hint="akun.via_google ? 'Terhubung dengan Google; login Google tetap berfungsi walau email diganti.' : ''"
+                />
             </div>
-            <button type="submit" :disabled="profil.processing || !profil.isDirty" class="mt-4 h-10 rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-40">Simpan Profil</button>
+            <UiButton type="submit" class="mt-4" :loading="profil.processing" :disabled="!profil.isDirty">Simpan Profil</UiButton>
         </form>
 
         <form class="mt-4 rounded-2xl border border-slate-200 p-5" @submit.prevent="simpanPassword">
             <h2 class="text-base font-semibold text-ink">{{ akun.punya_password ? 'Ganti Password' : 'Buat Password' }}</h2>
             <p v-if="!akun.punya_password" class="mt-1 text-sm text-slate-500">Kamu daftar lewat Google. Buat password agar bisa masuk juga dengan email.</p>
             <div class="mt-4 grid gap-4 sm:grid-cols-3">
-                <div v-if="akun.punya_password">
-                    <label for="current_password" class="text-sm font-medium text-ink">Password lama</label>
-                    <input id="current_password" v-model="password.current_password" type="password" required autocomplete="current-password" class="mt-1.5 h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none" />
-                    <p v-if="password.errors.current_password" class="mt-1 text-xs text-rose-600">{{ password.errors.current_password }}</p>
-                </div>
-                <div>
-                    <label for="password" class="text-sm font-medium text-ink">Password baru</label>
-                    <input id="password" v-model="password.password" type="password" required minlength="8" autocomplete="new-password" class="mt-1.5 h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none" />
-                    <p v-if="password.errors.password" class="mt-1 text-xs text-rose-600">{{ password.errors.password }}</p>
-                </div>
-                <div>
-                    <label for="password_confirmation" class="text-sm font-medium text-ink">Ulangi password baru</label>
-                    <input id="password_confirmation" v-model="password.password_confirmation" type="password" required autocomplete="new-password" class="mt-1.5 h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none" />
-                </div>
+                <UiInput v-if="akun.punya_password" v-model="password.current_password" label="Password lama" type="password" required autocomplete="current-password" :error="password.errors.current_password" />
+                <UiInput v-model="password.password" label="Password baru" type="password" required minlength="8" autocomplete="new-password" :error="password.errors.password" />
+                <UiInput v-model="password.password_confirmation" label="Ulangi password baru" type="password" required autocomplete="new-password" />
             </div>
-            <button type="submit" :disabled="password.processing" class="mt-4 h-10 rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-40">{{ akun.punya_password ? 'Ganti Password' : 'Buat Password' }}</button>
+            <UiButton type="submit" class="mt-4" :loading="password.processing">{{ akun.punya_password ? 'Ganti Password' : 'Buat Password' }}</UiButton>
         </form>
     </section>
 </template>

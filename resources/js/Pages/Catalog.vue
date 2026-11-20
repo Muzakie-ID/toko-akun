@@ -2,6 +2,7 @@
 import { Link, router, usePage } from '@inertiajs/vue3'
 import { computed, reactive, ref } from 'vue'
 import Countdown from '@/Components/Countdown.vue'
+import { UiButton, UiCheckbox, UiChip, UiSearch, UiSelect } from '@/Components/ui'
 import ProductCardCompact from '@/Components/ProductCardCompact.vue'
 import { rupiah } from '@/lib/format'
 
@@ -15,6 +16,12 @@ const props = defineProps({
 })
 
 const user = computed(() => usePage().props.auth?.user)
+const opsiUrut = [
+    { value: 'populer', label: 'Terpopuler' },
+    { value: 'terbaru', label: 'Terbaru' },
+    { value: 'termurah', label: 'Harga terendah' },
+    { value: 'termahal', label: 'Harga tertinggi' },
+]
 
 // Chip kategori di HP: pilih satu (seperti referensi); panel filter tetap bisa pilih banyak
 const pilihKategori = (slug) => {
@@ -71,44 +78,19 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
     <!-- ===== Beranda HP (mobile-first) ===== -->
     <div class="md:hidden">
         <!-- Pencarian menonjol + filter -->
-        <form class="flex gap-2 px-4 pt-3" role="search" @submit.prevent="cariHp">
-            <label class="flex h-12 min-w-0 flex-1 items-center gap-2.5 rounded-2xl bg-slate-100 px-4 focus-within:ring-2 focus-within:ring-slate-300">
-                <Icon icon="heroicons:magnifying-glass" class="h-5 w-5 shrink-0 text-slate-400" />
-                <input v-model="f.q" type="search" aria-label="Cari produk" placeholder="Cari Netflix, ChatGPT, Canva…" class="w-full bg-transparent text-sm text-ink placeholder:text-slate-400 focus:outline-none" />
-            </label>
-            <button type="button" class="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-ink text-white" aria-label="Filter & urutkan" @click="filterOpen = true">
-                <Icon icon="heroicons:adjustments-horizontal" class="h-5 w-5" />
-                <span v-if="jumlahFilter" class="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold">{{ jumlahFilter }}</span>
-            </button>
-        </form>
+        <div class="flex gap-2 px-4 pt-3">
+            <UiSearch v-model="f.q" size="lg" label="Cari produk" placeholder="Cari Netflix, ChatGPT, Canva…" @search="cariHp" />
+            <div class="relative">
+                <UiButton size="lg" square icon="heroicons:adjustments-horizontal" class="rounded-2xl" label="Filter & urutkan" @click="filterOpen = true" />
+                <span v-if="jumlahFilter" class="pointer-events-none absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold text-white">{{ jumlahFilter }}</span>
+            </div>
+        </div>
 
         <!-- Chip kategori -->
         <div class="mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="tablist" aria-label="Kategori">
-            <button
-                type="button"
-                role="tab"
-                :aria-selected="!f.kategori.length"
-                class="h-9 shrink-0 rounded-full px-4 text-sm font-medium transition"
-                :class="!f.kategori.length ? 'bg-ink text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'"
-                @click="pilihKategori(null)"
-            >Semua</button>
-            <button
-                v-if="f.sale"
-                type="button"
-                class="flex h-9 shrink-0 items-center gap-1 rounded-full bg-rose-500 px-4 text-sm font-medium text-white"
-                aria-label="Hapus filter flash sale"
-                @click="f.sale = false; apply()"
-            ><Icon icon="heroicons:bolt-solid" class="h-4 w-4" /> Flash Sale <Icon icon="heroicons:x-mark" class="h-4 w-4" /></button>
-            <button
-                v-for="k in opsi.kategori"
-                :key="k.value"
-                type="button"
-                role="tab"
-                :aria-selected="f.kategori.length === 1 && f.kategori[0] === k.value"
-                class="h-9 shrink-0 rounded-full px-4 text-sm font-medium transition"
-                :class="f.kategori.length === 1 && f.kategori[0] === k.value ? 'bg-ink text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'"
-                @click="pilihKategori(k.value)"
-            >{{ k.label }}</button>
+            <UiChip size="sm" role="tab" :active="!f.kategori.length" @click="pilihKategori(null)">Semua</UiChip>
+            <UiChip v-if="f.sale" size="sm" active icon="heroicons:bolt-solid" aria-label="Hapus filter flash sale" @click="f.sale = false; apply()">Flash Sale <Icon icon="heroicons:x-mark" class="h-4 w-4" /></UiChip>
+            <UiChip v-for="k in opsi.kategori" :key="k.value" size="sm" role="tab" :active="f.kategori.length === 1 && f.kategori[0] === k.value" @click="pilihKategori(k.value)">{{ k.label }}</UiChip>
         </div>
 
         <template v-if="!adaFilter()">
@@ -117,9 +99,7 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
                 <p v-if="promo.diskonMaks" class="inline-flex rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-rose-600">Hemat s.d. {{ promo.diskonMaks }}%</p>
                 <h1 class="mt-2 text-2xl leading-tight font-extrabold tracking-tight text-ink">Langganan Premium,<br /><span class="text-gold">Lebih Hemat</span></h1>
                 <p class="mt-1.5 text-sm text-slate-600">Akun dikirim otomatis begitu pembayaran masuk.</p>
-                <a href="#katalog" class="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-ink px-5 text-sm font-semibold text-white">
-                    Belanja Sekarang <Icon icon="heroicons:arrow-right" class="h-4 w-4" />
-                </a>
+                <UiButton href="#katalog" native class="mt-4" icon-right="heroicons:arrow-right">Belanja Sekarang</UiButton>
             </div>
 
             <!-- Flash sale (hanya saat ada sale berlangsung) -->
@@ -129,7 +109,7 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
                         <p class="flex items-center gap-1 text-base font-bold"><Icon icon="heroicons:bolt-solid" class="h-5 w-5" /> {{ flashSale.nama }}</p>
                         <p class="text-xs text-white/80">Berakhir dalam</p>
                     </div>
-                    <button type="button" class="-my-1 shrink-0 rounded-lg bg-white/15 px-3 py-2 text-xs font-semibold" @click="lihatSale">Lihat semua</button>
+                    <UiButton size="sm" variant="white" class="-my-1 bg-white/15 text-white hover:bg-white/25" @click="lihatSale">Lihat semua</UiButton>
                 </div>
                 <div class="mt-2 px-4"><Countdown :to="flashSale.selesai_at" @selesai="saleSelesai" /></div>
                 <ul class="mt-3 flex snap-x gap-2.5 overflow-x-auto px-4 pb-1 text-ink [scrollbar-width:none]">
@@ -172,7 +152,7 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
             <section v-if="terlaris.length" class="mt-6">
                 <div class="flex items-center justify-between px-4">
                     <h2 class="text-base font-bold text-ink">Paling Laris</h2>
-                    <a href="#katalog" class="-my-2 py-2 text-sm font-medium text-slate-500">Lihat semua</a>
+                    <UiButton href="#katalog" native variant="link" class="text-sm text-slate-500">Lihat semua</UiButton>
                 </div>
                 <ul class="mt-3 flex snap-x gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
                     <li v-for="p in terlaris" :key="p.id" class="w-40 shrink-0 snap-start">
@@ -194,13 +174,7 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
                 <p class="mt-4 text-base text-slate-600">
                     Proses otomatis &bull; Pengiriman instan &bull; Bantuan pelanggan
                 </p>
-                <a
-                    href="#katalog"
-                    class="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-brand-900 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
-                >
-                    Lihat Semua Produk
-                    <Icon icon="heroicons:arrow-right" class="h-4 w-4" />
-                </a>
+                <UiButton href="#katalog" native size="lg" class="mt-6" icon-right="heroicons:arrow-right">Lihat Semua Produk</UiButton>
             </div>
 
             <!-- Dekorasi ikon app berwarna brand -->
@@ -227,7 +201,7 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
             <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
                 <h2 class="flex items-center gap-2 text-xl font-bold"><Icon icon="heroicons:bolt-solid" class="h-6 w-6" /> {{ flashSale.nama }}</h2>
                 <div class="flex items-center gap-2 text-sm text-white/85">Berakhir dalam <Countdown :to="flashSale.selesai_at" @selesai="saleSelesai" /></div>
-                <button type="button" class="ml-auto h-10 rounded-xl bg-white px-4 text-sm font-semibold text-ink" @click="lihatSale">Lihat semua sale</button>
+                <UiButton variant="white" class="ml-auto" icon-right="heroicons:arrow-right" @click="lihatSale">Lihat semua sale</UiButton>
             </div>
             <ul class="mt-5 grid grid-cols-2 gap-3 text-ink lg:grid-cols-4 xl:grid-cols-6">
                 <li v-for="p in flashSale.produk.slice(0, 6)" :key="p.id"><ProductCardCompact :product="p" /></li>
@@ -238,8 +212,8 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
     <!-- Breadcrumb -->
     <nav aria-label="Breadcrumb" class="mx-auto hidden max-w-[1320px] px-4 md:block lg:px-15">
         <ol class="flex h-12 items-center gap-2 text-sm text-slate-500">
-            <li><a href="/" class="hover:text-ink">Beranda</a></li>
-            <li aria-hidden="true">&rsaquo;</li>
+            <li><Link href="/" class="hover:text-ink">Beranda</Link></li>
+            <li aria-hidden="true"><Icon icon="heroicons:chevron-right" class="h-3.5 w-3.5 text-slate-400" /></li>
             <li aria-current="page" class="font-medium text-ink">Semua Produk</li>
         </ol>
     </nav>
@@ -247,47 +221,14 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
     <!-- Filter cepat: tipe akun + urutan -->
     <div class="hidden border-y border-slate-100 bg-white md:block">
         <div class="mx-auto flex max-w-[1320px] items-center gap-2 overflow-x-auto px-4 py-3 lg:px-15 lg:py-3.5">
-            <button
-                type="button"
-                class="flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-ink bg-ink px-4 text-sm font-medium text-white lg:hidden"
-                :aria-expanded="filterOpen"
-                @click="filterOpen = true"
-            >
-                <Icon icon="heroicons:adjustments-horizontal" class="h-4 w-4" />
+            <UiChip active icon="heroicons:adjustments-horizontal" class="lg:hidden" :aria-expanded="filterOpen" @click="filterOpen = true">
                 Filter<span v-if="jumlahFilter"> ({{ jumlahFilter }})</span>
-            </button>
-            <button
-                v-for="j in opsi.jenis"
-                :key="j.value"
-                type="button"
-                :aria-pressed="f.jenis.includes(j.value)"
-                class="flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition lg:h-9"
-                :class="f.jenis.includes(j.value) ? 'border-ink bg-ink text-white' : 'border-slate-200 text-slate-600 hover:border-slate-400 hover:text-ink'"
-                @click="toggle(f.jenis, j.value)"
-            >
-                <Icon :icon="j.value === 'sharing' ? 'heroicons:user-group' : 'heroicons:user'" class="h-3.5 w-3.5" />
-                {{ j.label }}
-            </button>
-            <button
-                v-for="d in opsi.durasi"
-                :key="d.value"
-                type="button"
-                :aria-pressed="f.durasi.includes(d.value)"
-                class="flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition lg:h-9"
-                :class="f.durasi.includes(d.value) ? 'border-ink bg-ink text-white' : 'border-slate-200 text-slate-600 hover:border-slate-400 hover:text-ink'"
-                @click="toggle(f.durasi, d.value)"
-            >
-                <Icon icon="heroicons:clock" class="h-3.5 w-3.5" />
-                {{ d.label }}
-            </button>
+            </UiChip>
+            <UiChip v-for="j in opsi.jenis" :key="j.value" :active="f.jenis.includes(j.value)" :icon="j.value === 'sharing' ? 'heroicons:user-group' : 'heroicons:user'" @click="toggle(f.jenis, j.value)">{{ j.label }}</UiChip>
+            <UiChip v-for="d in opsi.durasi" :key="d.value" :active="f.durasi.includes(d.value)" icon="heroicons:clock" @click="toggle(f.durasi, d.value)">{{ d.label }}</UiChip>
             <div class="ml-auto hidden shrink-0 items-center gap-2 lg:flex">
                 <label for="urut" class="text-sm text-slate-500">Urutkan</label>
-                <select id="urut" v-model="f.urut" class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-ink focus:border-slate-400 focus:outline-none" @change="apply">
-                    <option value="populer">Terpopuler</option>
-                    <option value="terbaru">Terbaru</option>
-                    <option value="termurah">Harga terendah</option>
-                    <option value="termahal">Harga tertinggi</option>
-                </select>
+                <UiSelect id="urut" v-model="f.urut" size="sm" class="w-44" :options="opsiUrut" @change="apply" />
             </div>
         </div>
     </div>
@@ -306,73 +247,43 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
             >
                 <div class="mb-4 flex items-center justify-between lg:hidden">
                     <h2 class="text-base font-semibold text-ink">Filter &amp; Urutkan</h2>
-                    <button type="button" class="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100" aria-label="Tutup filter" @click="filterOpen = false">
-                        <Icon icon="heroicons:x-mark" class="h-5 w-5" />
-                    </button>
+                    <UiButton variant="ghost" square icon="heroicons:x-mark" class="rounded-full" label="Tutup filter" @click="filterOpen = false" />
                 </div>
                 <div class="space-y-7 lg:sticky lg:top-24">
                     <fieldset class="lg:hidden">
                         <legend class="text-sm font-semibold text-ink">Urutkan</legend>
-                        <select v-model="f.urut" aria-label="Urutkan" class="mt-3 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-ink focus:border-slate-400 focus:outline-none" @change="apply">
-                            <option value="populer">Terpopuler</option>
-                            <option value="terbaru">Terbaru</option>
-                            <option value="termurah">Harga terendah</option>
-                            <option value="termahal">Harga tertinggi</option>
-                        </select>
+                        <UiSelect v-model="f.urut" class="mt-3" aria-label="Urutkan" :options="opsiUrut" @change="apply" />
                     </fieldset>
                     <fieldset v-if="opsi.kategori.length">
                         <legend class="text-sm font-semibold text-ink">Kategori</legend>
-                        <div class="mt-2 space-y-0.5 lg:mt-3 lg:space-y-2.5">
-                            <label v-for="k in opsi.kategori" :key="k.value" class="flex min-h-9 cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink lg:min-h-0">
-                                <span class="flex items-center gap-2.5">
-                                    <input type="checkbox" :checked="f.kategori.includes(k.value)" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400" @change="toggle(f.kategori, k.value)" />
-                                    {{ k.label }}
-                                </span>
-                                <span class="text-xs text-slate-400">{{ k.jumlah }}</span>
-                            </label>
+                        <div class="mt-2 space-y-0.5">
+                            <UiCheckbox v-for="k in opsi.kategori" :key="k.value" v-model="f.kategori" :value="k.value" @change="apply">{{ k.label }}<template #end><span class="text-xs text-slate-400">{{ k.jumlah }}</span></template></UiCheckbox>
                         </div>
                     </fieldset>
 
                     <fieldset v-if="opsi.harga_tertinggi">
                         <legend class="text-sm font-semibold text-ink">Harga maksimal</legend>
                         <p class="mt-3 text-sm font-medium text-ink">{{ rupiah(f.harga_max) }}</p>
-                        <input v-model.number="f.harga_max" type="range" min="0" :max="opsi.harga_tertinggi" :step="1000" class="mt-2 w-full accent-brand-600" aria-label="Harga maksimal" @change="apply" />
+                        <input v-model.number="f.harga_max" type="range" min="0" :max="opsi.harga_tertinggi" :step="1000" class="mt-2 w-full accent-[var(--ui-primary)]" aria-label="Harga maksimal" @change="apply" />
                     </fieldset>
 
                     <fieldset>
                         <legend class="text-sm font-semibold text-ink">Durasi</legend>
-                        <div class="mt-2 space-y-0.5 lg:mt-3 lg:space-y-2.5">
-                            <label v-for="d in opsi.durasi" :key="d.value" class="flex min-h-9 cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink lg:min-h-0">
-                                <span class="flex items-center gap-2.5">
-                                    <input type="checkbox" :checked="f.durasi.includes(d.value)" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400" @change="toggle(f.durasi, d.value)" />
-                                    {{ d.label }}
-                                </span>
-                                <span class="text-xs text-slate-400">{{ d.jumlah }}</span>
-                            </label>
+                        <div class="mt-2 space-y-0.5">
+                            <UiCheckbox v-for="d in opsi.durasi" :key="d.value" v-model="f.durasi" :value="d.value" @change="apply">{{ d.label }}<template #end><span class="text-xs text-slate-400">{{ d.jumlah }}</span></template></UiCheckbox>
                         </div>
                     </fieldset>
 
                     <fieldset>
                         <legend class="text-sm font-semibold text-ink">Jenis Akun</legend>
-                        <div class="mt-2 space-y-0.5 lg:mt-3 lg:space-y-2.5">
-                            <label v-for="j in opsi.jenis" :key="j.value" class="flex min-h-9 cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink lg:min-h-0">
-                                <span class="flex items-center gap-2.5">
-                                    <input type="checkbox" :checked="f.jenis.includes(j.value)" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400" @change="toggle(f.jenis, j.value)" />
-                                    {{ j.label }}
-                                </span>
-                                <span class="text-xs text-slate-400">{{ j.jumlah }}</span>
-                            </label>
+                        <div class="mt-2 space-y-0.5">
+                            <UiCheckbox v-for="j in opsi.jenis" :key="j.value" v-model="f.jenis" :value="j.value" @change="apply">{{ j.label }}<template #end><span class="text-xs text-slate-400">{{ j.jumlah }}</span></template></UiCheckbox>
                         </div>
                     </fieldset>
 
                     <div class="flex gap-2">
-                        <button type="button" :disabled="!adaFilter()" class="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 transition hover:border-brand-400 hover:text-ink disabled:opacity-40 lg:h-10" @click="reset">
-                            <Icon icon="heroicons:arrow-path" class="h-4 w-4" />
-                            Reset Filter
-                        </button>
-                        <button type="button" class="h-11 flex-1 rounded-xl bg-brand-600 text-sm font-semibold text-white lg:hidden" @click="filterOpen = false">
-                            Lihat {{ produk.length }} produk
-                        </button>
+                        <UiButton variant="secondary" icon="heroicons:arrow-path" class="flex-1" :disabled="!adaFilter()" @click="reset">Reset Filter</UiButton>
+                        <UiButton class="flex-1 lg:hidden" @click="filterOpen = false">Lihat {{ produk.length }} produk</UiButton>
                     </div>
                 </div>
             </aside>
@@ -393,7 +304,7 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
                     <Icon icon="heroicons:magnifying-glass" class="h-10 w-10 text-slate-300" />
                     <p class="mt-3 text-sm font-semibold text-ink">Produk tidak ditemukan</p>
                     <p class="mt-1 text-sm text-slate-500">Coba kata kunci lain atau hapus filter.</p>
-                    <button type="button" class="mt-4 h-10 rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700" @click="reset">Reset Filter</button>
+                    <UiButton class="mt-4" icon="heroicons:arrow-path" @click="reset">Reset Filter</UiButton>
                 </div>
             </div>
         </div>
@@ -406,7 +317,7 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
                 <h2 class="text-2xl font-bold text-ink">Paling Laris</h2>
                 <p class="mt-1 text-sm text-slate-500">Produk yang paling banyak dibeli oleh pelanggan kami.</p>
             </div>
-            <a href="#katalog" class="-my-2 shrink-0 py-2 text-sm font-semibold text-brand-600 hover:text-brand-700">Lihat Semua &rarr;</a>
+            <UiButton href="#katalog" native variant="link" icon-right="heroicons:arrow-right">Lihat Semua</UiButton>
         </div>
         <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             <ProductCardSmall v-for="p in terlaris" :key="p.id" :product="p" />

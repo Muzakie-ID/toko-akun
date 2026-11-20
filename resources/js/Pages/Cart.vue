@@ -2,6 +2,7 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { brandColors } from '@/lib/brand'
+import { UiButton, UiQuantity, UiRadio } from '@/Components/ui'
 import { rupiah } from '@/lib/format'
 
 const props = defineProps({
@@ -54,16 +55,10 @@ const checkout = () => form.post('/checkout')
                             </p>
                             <p v-if="item.qty > item.stok" class="mt-1 text-xs font-medium text-rose-600">{{ item.stok ? `Stok tinggal ${item.stok}, kurangi jumlahnya.` : 'Stok habis, hapus dari keranjang.' }}</p>
                         </div>
-                        <button type="button" class="-mt-2 -mr-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-500" :aria-label="`Hapus ${item.nama}`" @click="hapus(item)">
-                            <Icon icon="heroicons:trash" class="h-5 w-5" />
-                        </button>
+                        <UiButton variant="ghost" size="sm" square icon="heroicons:trash" class="-mt-1.5 -mr-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-500" :label="`Hapus ${item.nama}`" @click="hapus(item)" />
                     </div>
                     <div class="mt-3 flex items-center justify-between gap-3 sm:pl-16">
-                        <div class="flex items-center gap-2">
-                            <button type="button" class="h-10 w-10 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="item.qty <= 1" :aria-label="`Kurangi ${item.nama}`" @click="ubahQty(item, item.qty - 1)">&minus;</button>
-                            <span class="w-8 text-center text-sm font-semibold text-ink" aria-live="polite">{{ item.qty }}</span>
-                            <button type="button" class="h-10 w-10 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="item.qty >= item.stok" :aria-label="`Tambah ${item.nama}`" @click="ubahQty(item, item.qty + 1)">+</button>
-                        </div>
+                        <UiQuantity :model-value="item.qty" :max="Math.max(item.stok, 1)" :label="item.nama" @update:model-value="(q) => ubahQty(item, q)" />
                         <p class="text-right text-base font-bold text-ink">
                             {{ rupiah(lineTotal(item)) }}
                             <span v-if="item.flash_sale && item.sisa_sale !== null && item.qty > item.sisa_sale" class="block text-[11px] font-normal text-slate-500">{{ item.sisa_sale }} akun harga sale</span>
@@ -78,7 +73,7 @@ const checkout = () => form.post('/checkout')
                     <h2 class="text-sm font-semibold text-ink">Metode Pembayaran</h2>
                     <div v-if="metode.length" class="mt-3 space-y-2" role="radiogroup">
                         <label v-for="m in metode" :key="m.value" class="flex gap-3 rounded-xl border p-3 transition" :class="[form.metode_bayar === m.value ? 'border-ink bg-slate-50 ring-1 ring-ink' : 'border-slate-200 hover:border-slate-400', isDisabled(m) ? 'cursor-not-allowed opacity-60' : 'cursor-pointer']">
-                            <input v-model="form.metode_bayar" type="radio" name="metode" :value="m.value" :disabled="isDisabled(m)" class="mt-0.5 h-4 w-4 text-brand-600" />
+                            <UiRadio v-model="form.metode_bayar" name="metode" :value="m.value" :disabled="isDisabled(m)" class="mt-0.5" />
                             <span>
                                 <span class="flex items-center gap-1.5 text-sm font-semibold text-ink">
                                     <Icon :icon="{ qris: 'heroicons:qr-code', saldo: 'heroicons:wallet' }[m.value] ?? 'heroicons:building-library'" class="h-4 w-4" /> {{ m.label }}
@@ -108,9 +103,7 @@ const checkout = () => form.post('/checkout')
                     <ul v-if="form.errors.checkout" class="mt-3 space-y-1 text-xs text-rose-600">
                         <li>{{ form.errors.checkout }}</li>
                     </ul>
-                    <button type="submit" :disabled="form.processing || !metode.length || adaMasalahStok" class="mt-4 h-11 w-full rounded-xl bg-brand-600 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40">
-                        {{ form.processing ? 'Membuat pesanan…' : 'Bayar Sekarang' }}
-                    </button>
+                    <UiButton type="submit" block class="mt-4" :loading="form.processing" :disabled="!metode.length || adaMasalahStok">Bayar Sekarang</UiButton>
                 </div>
             </form>
         </div>
@@ -119,7 +112,7 @@ const checkout = () => form.post('/checkout')
             <Icon icon="heroicons:shopping-cart" class="h-12 w-12 text-slate-300" />
             <p class="mt-4 text-sm font-semibold text-ink">Keranjang masih kosong</p>
             <p class="mt-1 text-sm text-slate-500">Yuk pilih produk premium favoritmu.</p>
-            <Link href="/" class="mt-4 inline-flex h-10 items-center rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700">Lihat Produk</Link>
+            <UiButton href="/" class="mt-4">Lihat Produk</UiButton>
         </div>
     </section>
 </template>

@@ -1,4 +1,5 @@
 <script setup>
+import { UiButton } from '@/Components/ui'
 import { Head, Link } from '@inertiajs/vue3'
 import StatusBadge from '@/Components/Admin/StatusBadge.vue'
 import Pagination from '@/Components/Admin/Pagination.vue'
@@ -22,7 +23,7 @@ defineProps({ orders: { type: Object, required: true } })
                 <div class="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-4">
                     <p class="text-sm font-bold text-ink">{{ rupiah(o.total) }}</p>
                     <StatusBadge :tone="o.status_tone" :label="o.status_label" />
-                    <span class="text-xs font-semibold" :class="o.perlu_bayar ? 'text-brand-600' : 'text-slate-400'">{{ o.perlu_bayar ? 'Bayar' : 'Detail' }} &rarr;</span>
+                    <span class="flex items-center gap-0.5 text-xs font-semibold" :class="o.perlu_bayar ? 'text-ink' : 'text-slate-400'">{{ o.perlu_bayar ? 'Bayar' : 'Detail' }} <Icon icon="heroicons:chevron-right" class="h-3.5 w-3.5" /></span>
                 </div>
             </Link>
             <Pagination :paginator="orders" />
@@ -31,7 +32,7 @@ defineProps({ orders: { type: Object, required: true } })
         <div v-else class="mt-16 flex flex-col items-center text-center">
             <Icon icon="heroicons:shopping-bag" class="h-12 w-12 text-slate-300" />
             <p class="mt-4 text-sm font-semibold text-ink">Belum ada pesanan</p>
-            <Link href="/" class="mt-4 inline-flex h-10 items-center rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700">Mulai Belanja</Link>
+            <UiButton href="/" class="mt-4">Mulai Belanja</UiButton>
         </div>
     </section>
 </template>

@@ -1,4 +1,8 @@
 @import 'tailwindcss';
+/* Gaya dasar form yang konsisten di semua browser; dipakai lewat kelas form-input/form-select/... di komponen Ui* */
+@plugin '@tailwindcss/forms' {
+    strategy: 'class';
+}
 
 @theme {
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
@@ -36,4 +40,29 @@
 .bar-striped {
     background-color: #eef0f4;
     background-image: repeating-linear-gradient(135deg, #dfe3ea 0 3px, transparent 3px 8px);
+}
+
+/*
+ * Warna utama komponen UI (UiButton, UiInput, ...): hitam di toko, biru di panel admin.
+ * AdminLayout memberi kelas .theme-admin pada pembungkusnya.
+ */
+@theme inline {
+    --color-primary: var(--ui-primary);
+    --color-primary-hover: var(--ui-primary-hover);
+    --color-primary-soft: var(--ui-primary-soft);
+    --color-primary-ring: var(--ui-primary-ring);
+}
+
+:root {
+    --ui-primary: var(--color-brand-900);
+    --ui-primary-hover: var(--color-brand-700);
+    --ui-primary-soft: var(--color-slate-100);
+    --ui-primary-ring: var(--color-slate-300);
+}
+
+.theme-admin {
+    --ui-primary: var(--color-accent-600);
+    --ui-primary-hover: var(--color-accent-700);
+    --ui-primary-soft: var(--color-accent-50);
+    --ui-primary-ring: var(--color-accent-300);
 }

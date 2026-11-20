@@ -2,6 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import StatusBadge from '@/Components/Admin/StatusBadge.vue'
+import { UiButton } from '@/Components/ui'
 import { rupiah } from '@/lib/format'
 
 const props = defineProps({
@@ -52,9 +53,7 @@ const sisa = computed(() => {
                 <Icon icon="heroicons:clock" class="h-4 w-4" /> Sisa waktu {{ sisa }}
             </p>
             <div class="mt-4 flex flex-col items-center gap-2">
-                <a v-if="topup.checkout_url" :href="topup.checkout_url" target="_blank" rel="noopener" class="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700">
-                    Buka halaman bayar <Icon icon="heroicons:arrow-top-right-on-square" class="h-4 w-4" />
-                </a>
+                <UiButton v-if="topup.checkout_url" :href="topup.checkout_url" external icon-right="heroicons:arrow-top-right-on-square">Buka halaman bayar</UiButton>
                 <p class="flex items-center gap-1.5 text-xs text-slate-500"><span class="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> Status diperbarui otomatis</p>
             </div>
         </div>
@@ -63,7 +62,7 @@ const sisa = computed(() => {
             <Icon icon="heroicons:check-circle" class="mx-auto h-10 w-10 text-emerald-600" />
             <p class="mt-2 text-base font-semibold text-emerald-900">Saldo {{ rupiah(topup.jumlah) }} sudah masuk</p>
             <p class="mt-1 text-sm text-emerald-800">Saldo sekarang {{ rupiah(saldo) }}</p>
-            <Link href="/" class="mt-4 inline-flex h-10 items-center rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700">Belanja Sekarang</Link>
+            <UiButton href="/" class="mt-4">Belanja Sekarang</UiButton>
         </div>
 
         <div v-else class="mt-6 rounded-2xl bg-slate-50 p-5 text-sm text-slate-700 ring-1 ring-slate-200">

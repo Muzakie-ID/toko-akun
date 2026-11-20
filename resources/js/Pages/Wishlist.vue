@@ -1,4 +1,5 @@
 <script setup>
+import { UiButton } from '@/Components/ui'
 import { Head, Link } from '@inertiajs/vue3'
 import ProductCard from '@/Components/ProductCard.vue'
 import ProductCardCompact from '@/Components/ProductCardCompact.vue'
@@ -22,7 +23,7 @@ defineProps({ produk: { type: Array, required: true } })
             <Icon icon="heroicons:heart" class="h-12 w-12 text-slate-300" />
             <p class="mt-4 text-sm font-semibold text-ink">Wishlist masih kosong</p>
             <p class="mt-1 text-sm text-slate-500">Ketuk ikon hati di produk untuk menyimpannya.</p>
-            <Link href="/" class="mt-4 inline-flex h-10 items-center rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700">Lihat Produk</Link>
+            <UiButton href="/" class="mt-4">Lihat Produk</UiButton>
         </div>
     </section>
 </template>

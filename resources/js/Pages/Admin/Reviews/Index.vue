@@ -1,4 +1,5 @@
 <script setup>
+import { UiButton, UiSelect } from '@/Components/ui'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { reactive } from 'vue'
 import Pagination from '@/Components/Admin/Pagination.vue'
@@ -23,15 +24,8 @@ const hapus = (r) => confirm(`Hapus ulasan dari ${r.pembeli}?`) && router.delete
 
         <section class="mt-5 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70">
             <div class="grid grid-cols-2 gap-2 border-b border-slate-100 p-3 sm:flex sm:gap-3 sm:p-4">
-                <select v-model="filter.rating" aria-label="Filter bintang" class="h-10 rounded-xl bg-white px-3 text-sm ring-1 ring-slate-200 focus:outline-none" @change="apply">
-                    <option value="">Semua bintang</option>
-                    <option v-for="n in [5, 4, 3, 2, 1]" :key="n" :value="String(n)">{{ n }} bintang</option>
-                </select>
-                <select v-model="filter.tampil" aria-label="Filter tampil" class="h-10 rounded-xl bg-white px-3 text-sm ring-1 ring-slate-200 focus:outline-none" @change="apply">
-                    <option value="">Semua</option>
-                    <option value="ya">Ditampilkan</option>
-                    <option value="tidak">Disembunyikan</option>
-                </select>
+                <UiSelect v-model="filter.rating" class="sm:w-44" aria-label="Filter bintang" placeholder="Semua bintang" :options="[5, 4, 3, 2, 1].map((n) => ({ value: String(n), label: `${n} bintang` }))" @change="apply" />
+                <UiSelect v-model="filter.tampil" class="sm:w-44" aria-label="Filter tampil" placeholder="Semua" :options="[{ value: 'ya', label: 'Ditampilkan' }, { value: 'tidak', label: 'Disembunyikan' }]" @change="apply" />
             </div>
             <ul class="divide-y divide-slate-100">
                 <li v-for="r in reviews.data" :key="r.id" class="flex flex-wrap gap-x-4 gap-y-1 px-4 py-4 sm:px-5" :class="{ 'bg-slate-50/70': !r.is_tampil }">
@@ -45,8 +39,8 @@ const hapus = (r) => confirm(`Hapus ulasan dari ${r.pembeli}?`) && router.delete
                         <p class="mt-1 text-xs text-slate-400">{{ r.pembeli }} · <Link :href="`/admin/pesanan/${r.invoice}`" class="hover:text-accent-600">{{ r.invoice }}</Link> · {{ r.tanggal }}</p>
                     </div>
                     <div class="-ml-2 flex items-start gap-1 text-xs font-semibold whitespace-nowrap sm:ml-0">
-                        <button type="button" class="-my-1 inline-flex min-h-9 items-center px-2 text-accent-600 hover:underline" @click="toggle(r)">{{ r.is_tampil ? 'Sembunyikan' : 'Tampilkan' }}</button>
-                        <button type="button" class="-my-1 inline-flex min-h-9 items-center px-2 text-rose-600 hover:underline" @click="hapus(r)">Hapus</button>
+                        <UiButton variant="ghost" size="sm" :icon="r.is_tampil ? 'heroicons:eye-slash' : 'heroicons:eye'" @click="toggle(r)">{{ r.is_tampil ? 'Sembunyikan' : 'Tampilkan' }}</UiButton>
+                        <UiButton variant="ghost" size="sm" icon="heroicons:trash" class="text-rose-600 hover:bg-rose-50 hover:text-rose-700" @click="hapus(r)">Hapus</UiButton>
                     </div>
                 </li>
                 <li v-if="!reviews.data.length" class="px-5 py-14 text-center text-sm text-slate-500">Belum ada ulasan.</li>

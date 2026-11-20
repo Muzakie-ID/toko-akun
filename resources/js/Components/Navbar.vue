@@ -1,6 +1,7 @@
 <script setup>
 import { Link, router, usePage } from '@inertiajs/vue3'
 import { computed, ref, watch } from 'vue'
+import { UiButton, UiSearch } from '@/Components/ui'
 
 const page = usePage()
 const search = ref(new URLSearchParams(page.url.split('?')[1] ?? '').get('q') ?? '')
@@ -43,18 +44,7 @@ const navLinks = [
 
             <!-- Search -->
             <div class="ml-auto hidden min-w-0 flex-1 justify-center lg:flex">
-                <form role="search" class="w-full max-w-[420px]" @submit.prevent="cari">
-                <label class="flex h-10 w-full items-center gap-2.5 rounded-full border border-slate-200 bg-slate-50 px-4 transition focus-within:border-slate-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-slate-200">
-                    <Icon icon="heroicons:magnifying-glass" class="h-4.5 w-4.5 shrink-0 text-slate-400" />
-                    <input
-                        v-model="search"
-                        type="search"
-                        aria-label="Cari produk"
-                        placeholder="Cari produk, misalnya &quot;Netflix&quot; atau &quot;ChatGPT&quot;"
-                        class="w-full bg-transparent text-sm text-ink placeholder:text-slate-400 focus:outline-none"
-                    />
-                </label>
-                </form>
+                <UiSearch v-model="search" class="max-w-[420px]" tone="muted" label="Cari produk" placeholder="Cari produk, misalnya &quot;Netflix&quot; atau &quot;ChatGPT&quot;" @search="cari" />
             </div>
 
             <!-- Actions -->
@@ -86,9 +76,7 @@ const navLinks = [
                     <Link href="/login" class="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink sm:block">
                         Masuk
                     </Link>
-                    <Link href="/register" class="hidden rounded-lg bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 sm:block">
-                        Daftar
-                    </Link>
+                    <UiButton href="/register" size="sm" class="hidden sm:inline-flex">Daftar</UiButton>
                 </template>
 
                 <Link href="/keranjang" class="relative hidden h-10 items-center gap-2 rounded-lg px-2.5 text-sm sm:px-3 md:flex font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink" aria-label="Keranjang">
@@ -96,7 +84,7 @@ const navLinks = [
                         <Icon icon="heroicons:shopping-cart" class="h-5 w-5" />
                         <span
                             v-if="cartCount > 0"
-                            class="absolute -top-1.5 -right-2 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-brand-600 px-1 text-[10px] font-bold text-white"
+                            class="absolute -top-1.5 -right-2 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white"
                         >{{ cartCount }}</span>
                     </span>
                     <span class="hidden sm:inline">Keranjang</span>
@@ -117,12 +105,7 @@ const navLinks = [
 
         <!-- Mobile panel -->
         <div v-if="mobileOpen" class="max-h-[calc(100vh-72px)] overflow-y-auto border-t border-slate-200 px-4 pt-3 pb-4 md:hidden">
-            <form role="search" @submit.prevent="cari">
-                <label class="flex h-11 items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4">
-                    <Icon icon="heroicons:magnifying-glass" class="h-4.5 w-4.5 text-slate-400" />
-                    <input v-model="search" type="search" aria-label="Cari produk" placeholder="Cari produk..." class="w-full bg-transparent text-sm focus:outline-none" />
-                </label>
-            </form>
+            <UiSearch v-model="search" label="Cari produk" placeholder="Cari produk..." @search="cari" />
             <div v-if="user" class="mt-3 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2.5">
                 <span class="text-sm">
                     <span class="block font-semibold text-ink">{{ user.name }}</span>

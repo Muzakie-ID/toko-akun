@@ -3,6 +3,7 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 import Countdown from '@/Components/Countdown.vue'
 import StarRating from '@/Components/StarRating.vue'
+import { UiButton, UiQuantity } from '@/Components/ui'
 import { brandColors } from '@/lib/brand'
 import { angka, rupiah } from '@/lib/format'
 
@@ -75,9 +76,9 @@ const beli = (beliSekarang) => {
         <nav aria-label="Breadcrumb" class="mx-auto max-w-[1320px] px-4 lg:px-15">
             <ol class="flex h-12 items-center gap-2 text-sm text-slate-500">
                 <li><Link href="/" class="hover:text-ink">Beranda</Link></li>
-                <li aria-hidden="true">&rsaquo;</li>
+                <li aria-hidden="true"><Icon icon="heroicons:chevron-right" class="h-3.5 w-3.5 text-slate-400" /></li>
                 <li><Link :href="`/?kategori[]=${produk.kategori_slug}`" class="hover:text-ink">{{ produk.kategori }}</Link></li>
-                <li aria-hidden="true">&rsaquo;</li>
+                <li aria-hidden="true"><Icon icon="heroicons:chevron-right" class="h-3.5 w-3.5 text-slate-400" /></li>
                 <li aria-current="page" class="font-medium text-ink">{{ produk.nama }}</li>
             </ol>
         </nav>
@@ -174,22 +175,14 @@ const beli = (beliSekarang) => {
                                         <span v-if="terpilih.harga_asli && terpilih.harga_asli * qty > total" class="text-sm font-normal text-slate-400 line-through">{{ rupiah(terpilih.harga_asli * qty) }}</span>
                                     </p>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <button type="button" class="h-10 w-10 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="qty <= 1" aria-label="Kurangi jumlah" @click="qty--">&minus;</button>
-                                    <span class="w-8 text-center text-sm font-semibold text-ink" aria-live="polite">{{ qty }}</span>
-                                    <button type="button" class="h-10 w-10 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="qty >= terpilih.stok" aria-label="Tambah jumlah" @click="qty++">+</button>
-                                </div>
+                                <UiQuantity v-model="qty" :max="Math.max(terpilih.stok, 1)" />
                             </div>
                             <p class="mt-2 text-xs" :class="terpilih.stok ? 'text-emerald-700' : 'text-rose-600'">
                                 {{ terpilih.stok ? `Stok tersedia: ${terpilih.stok}` : 'Stok sedang habis' }}
                             </p>
                             <div class="mt-4 flex flex-col gap-2.5 sm:flex-row">
-                                <button type="button" :disabled="!terpilih.stok || processing" class="flex h-12 w-full shrink-0 sm:flex-1 items-center justify-center gap-2 rounded-xl bg-brand-600 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-40" @click="beli(true)">
-                                    <Icon icon="heroicons:bolt" class="h-4 w-4" /> Beli Sekarang
-                                </button>
-                                <button type="button" :disabled="!terpilih.stok || processing" class="flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-xl border sm:flex-1 border-brand-600 text-sm font-semibold text-ink transition hover:bg-slate-50 disabled:opacity-40" @click="beli(false)">
-                                    <Icon icon="heroicons:shopping-bag" class="h-4 w-4" /> Masukkan Keranjang
-                                </button>
+                                <UiButton size="lg" icon="heroicons:bolt" class="w-full sm:flex-1" :disabled="!terpilih.stok" :loading="processing" @click="beli(true)">Beli Sekarang</UiButton>
+                                <UiButton size="lg" variant="secondary" icon="heroicons:shopping-bag" class="w-full sm:flex-1" :disabled="!terpilih.stok || processing" @click="beli(false)">Masukkan Keranjang</UiButton>
                             </div>
                             <p v-if="!user" class="mt-2 text-center text-xs text-slate-500">Kamu akan diminta masuk dulu sebelum membeli.</p>
                         </div>
@@ -224,9 +217,9 @@ const beli = (beliSekarang) => {
                             <p v-if="u.komentar" class="mt-2 text-sm leading-6 text-slate-600">{{ u.komentar }}</p>
                         </li>
                         <li v-if="ulasan.daftar.length > ulasanTampil.length" class="md:col-span-2">
-                            <button type="button" class="h-11 w-full rounded-xl border border-slate-200 text-sm font-semibold text-ink hover:bg-slate-50" @click="semuaUlasan = true">
+                            <UiButton variant="secondary" block icon-right="heroicons:chevron-down" @click="semuaUlasan = true">
                                 Tampilkan {{ ulasan.daftar.length - ulasanTampil.length }} ulasan lainnya
-                            </button>
+                            </UiButton>
                         </li>
                     </ul>
                 </div>

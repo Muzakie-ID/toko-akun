@@ -1,6 +1,7 @@
 <script setup>
 import { Head, router, useForm } from '@inertiajs/vue3'
 import { ref } from 'vue'
+import { UiButton, UiCheckbox, UiInput } from '@/Components/ui'
 
 const props = defineProps({
     settings: { type: Object, required: true },
@@ -35,29 +36,17 @@ const err = (key) => form.errors[key]
 
         <form class="mt-5 space-y-4" @submit.prevent="save">
             <!-- Toko -->
-            <section class="rounded-2xl bg-white p-5 ring-1 ring-slate-200/70">
+            <section class="rounded-2xl bg-white p-4 ring-1 ring-slate-200/70 sm:p-5">
                 <h2 class="text-base font-semibold text-ink">Toko</h2>
                 <div class="mt-4 grid gap-4 sm:grid-cols-3">
-                    <div>
-                        <label class="text-sm font-medium text-ink" for="s-nama">Nama toko</label>
-                        <input id="s-nama" v-model="form.store_nama" type="text" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <p v-if="err('store_nama')" class="mt-1 text-xs text-rose-600">{{ err('store_nama') }}</p>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-ink" for="s-wa">WhatsApp admin</label>
-                        <input id="s-wa" v-model="form.store_whatsapp" type="tel" placeholder="62812..." class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <p v-if="err('store_whatsapp')" class="mt-1 text-xs text-rose-600">{{ err('store_whatsapp') }}</p>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-ink" for="s-target">Target penjualan / bulan (Rp)</label>
-                        <input id="s-target" v-model="form.store_target_bulanan" type="number" min="0" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <p v-if="err('store_target_bulanan')" class="mt-1 text-xs text-rose-600">{{ err('store_target_bulanan') }}</p>
-                    </div>
+                    <UiInput v-model="form.store_nama" label="Nama toko" required :error="err('store_nama')" />
+                    <UiInput v-model="form.store_whatsapp" label="WhatsApp admin" type="tel" placeholder="62812..." :error="err('store_whatsapp')" />
+                    <UiInput v-model="form.store_target_bulanan" label="Target penjualan / bulan (Rp)" type="number" min="0" required :error="err('store_target_bulanan')" />
                 </div>
             </section>
 
             <!-- QRIS qris-muz -->
-            <section class="rounded-2xl bg-white p-5 ring-1 ring-slate-200/70">
+            <section class="rounded-2xl bg-white p-4 ring-1 ring-slate-200/70 sm:p-5">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <h2 class="flex items-center gap-2 text-base font-semibold text-ink">
@@ -66,115 +55,85 @@ const err = (key) => form.errors[key]
                         </h2>
                         <p class="mt-1 text-sm text-slate-500">Tagihan dibuat di gateway qris-muz; pesanan lunas dan akun terkirim otomatis lewat webhook.</p>
                     </div>
-                    <label class="flex cursor-pointer items-center gap-2 text-sm font-medium text-ink">
-                        <input v-model="form.qris_enabled" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-accent-600" />
-                        Aktifkan
-                    </label>
+                    <UiCheckbox v-model="form.qris_enabled" label="Aktifkan" class="font-medium" />
                 </div>
 
                 <div class="mt-4 grid gap-4 sm:grid-cols-2">
-                    <div class="sm:col-span-2">
-                        <label class="text-sm font-medium text-ink" for="q-url">URL API gateway</label>
-                        <input id="q-url" v-model="form.qris_base_url" type="url" placeholder="https://api.qris-muz.domainmu.id" class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <p v-if="err('qris_base_url')" class="mt-1 text-xs text-rose-600">{{ err('qris_base_url') }}</p>
-                    </div>
+                    <UiInput v-model="form.qris_base_url" class="sm:col-span-2" label="URL API gateway" type="url" placeholder="https://api.qris-muz.domainmu.id" :error="err('qris_base_url')" />
+                    <UiInput
+                        v-model="form.qris_api_key"
+                        label="API key proyek"
+                        type="password"
+                        autocomplete="off"
+                        :placeholder="secrets.qris_api_key ? 'Tersimpan — kosongkan bila tidak diganti' : 'qm_live_...'"
+                        hint="Ambil di dashboard qris-muz, menu Proyek. Disimpan terenkripsi."
+                        :error="err('qris_api_key')"
+                    />
+                    <UiInput
+                        v-model="form.qris_webhook_secret"
+                        label="Webhook secret"
+                        type="password"
+                        autocomplete="off"
+                        :placeholder="secrets.qris_webhook_secret ? 'Tersimpan — kosongkan bila tidak diganti' : 'whsec_...'"
+                        hint="Untuk memastikan webhook benar dari qris-muz."
+                        :error="err('qris_webhook_secret')"
+                    />
+                    <UiInput v-model="form.qris_expiry_min" label="Masa berlaku tagihan (menit)" type="number" min="5" max="1440" required :error="err('qris_expiry_min')" />
                     <div>
-                        <label class="text-sm font-medium text-ink" for="q-key">API key proyek</label>
-                        <input id="q-key" v-model="form.qris_api_key" type="password" autocomplete="off" :placeholder="secrets.qris_api_key ? 'Tersimpan — kosongkan bila tidak diganti' : 'qm_live_...'" class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <p class="mt-1 text-xs text-slate-500">Dari dashboard qris-muz → Proyek. Disimpan terenkripsi.</p>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-ink" for="q-secret">Webhook secret</label>
-                        <input id="q-secret" v-model="form.qris_webhook_secret" type="password" autocomplete="off" :placeholder="secrets.qris_webhook_secret ? 'Tersimpan — kosongkan bila tidak diganti' : 'whsec_...'" class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <p class="mt-1 text-xs text-slate-500">Untuk memastikan webhook benar dari qris-muz.</p>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-ink" for="q-exp">Masa berlaku tagihan (menit)</label>
-                        <input id="q-exp" v-model="form.qris_expiry_min" type="number" min="5" max="1440" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <p v-if="err('qris_expiry_min')" class="mt-1 text-xs text-rose-600">{{ err('qris_expiry_min') }}</p>
-                    </div>
-                    <div>
-                        <span class="text-sm font-medium text-ink">URL webhook (isi di proyek qris-muz)</span>
-                        <div class="mt-1.5 flex h-10 items-center gap-2 rounded-xl bg-slate-50 px-3 ring-1 ring-slate-200">
+                        <span class="mb-1.5 block text-sm font-medium text-ink">URL webhook (isi di proyek qris-muz)</span>
+                        <div class="flex h-11 items-center gap-2 rounded-xl bg-slate-50 pr-1 pl-3.5 ring-1 ring-slate-200 ring-inset">
                             <code class="flex-1 truncate text-xs text-ink">{{ webhookUrl }}</code>
-                            <button type="button" class="text-xs font-semibold text-accent-600" @click="salinWebhook">{{ copied ? 'Tersalin' : 'Salin' }}</button>
+                            <UiButton variant="ghost" size="sm" class="text-primary" :icon="copied ? 'heroicons:check' : 'heroicons:clipboard-document'" @click="salinWebhook">{{ copied ? 'Tersalin' : 'Salin' }}</UiButton>
                         </div>
                     </div>
                 </div>
-                <button type="button" :disabled="testing || !qrisReady" class="mt-4 inline-flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium text-accent-700 ring-1 ring-accent-200 hover:bg-accent-50 disabled:opacity-40" :title="qrisReady ? '' : 'Simpan URL, API key, dan secret dulu'" @click="tesKoneksi">
-                    <Icon icon="heroicons:signal" class="h-4 w-4" /> {{ testing ? 'Mengecek…' : 'Tes koneksi' }}
-                </button>
+                <UiButton variant="soft" size="sm" class="mt-4" icon="heroicons:signal" :loading="testing" :disabled="!qrisReady" :title="qrisReady ? '' : 'Simpan URL, API key, dan secret dulu'" @click="tesKoneksi">
+                    Tes koneksi
+                </UiButton>
             </section>
 
             <!-- Transfer manual -->
-            <section class="rounded-2xl bg-white p-5 ring-1 ring-slate-200/70">
+            <section class="rounded-2xl bg-white p-4 ring-1 ring-slate-200/70 sm:p-5">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <h2 class="text-base font-semibold text-ink">Transfer manual</h2>
                         <p class="mt-1 text-sm text-slate-500">Pembeli transfer lalu unggah bukti; admin/karyawan memverifikasi di halaman Pesanan.</p>
                     </div>
-                    <label class="flex cursor-pointer items-center gap-2 text-sm font-medium text-ink">
-                        <input v-model="form.manual_enabled" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-accent-600" />
-                        Aktifkan
-                    </label>
+                    <UiCheckbox v-model="form.manual_enabled" label="Aktifkan" class="font-medium" />
                 </div>
-                <div class="mt-4 space-y-2">
-                    <div v-for="(r, i) in form.manual_rekening" :key="i" class="grid gap-2 sm:grid-cols-[140px_1fr_1fr_auto]">
-                        <input v-model="r.bank" type="text" required placeholder="BCA" :aria-label="`Bank ${i + 1}`" class="h-10 rounded-xl px-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <input v-model="r.nomor" type="text" required placeholder="Nomor rekening" :aria-label="`Nomor rekening ${i + 1}`" class="h-10 rounded-xl px-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <input v-model="r.nama" type="text" required placeholder="Atas nama" :aria-label="`Atas nama ${i + 1}`" class="h-10 rounded-xl px-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <button type="button" class="h-10 rounded-xl px-3 text-sm text-rose-600 hover:bg-rose-50" :aria-label="`Hapus rekening ${i + 1}`" @click="hapusRekening(i)">
-                            <Icon icon="heroicons:trash" class="h-4 w-4" />
-                        </button>
+                <div class="mt-4 space-y-3">
+                    <div v-for="(r, i) in form.manual_rekening" :key="i" class="grid gap-2 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200/70 sm:grid-cols-[140px_1fr_1fr_auto] sm:bg-transparent sm:p-0 sm:ring-0">
+                        <UiInput v-model="r.bank" required placeholder="BCA" :aria-label="`Bank ${i + 1}`" :error="err(`manual_rekening.${i}.bank`)" />
+                        <UiInput v-model="r.nomor" required placeholder="Nomor rekening" :aria-label="`Nomor rekening ${i + 1}`" :error="err(`manual_rekening.${i}.nomor`)" />
+                        <UiInput v-model="r.nama" required placeholder="Atas nama" :aria-label="`Atas nama ${i + 1}`" :error="err(`manual_rekening.${i}.nama`)" />
+                        <UiButton variant="ghost" square icon="heroicons:trash" class="text-rose-600 hover:bg-rose-50 hover:text-rose-700" :label="`Hapus rekening ${i + 1}`" @click="hapusRekening(i)" />
                     </div>
                     <p v-if="err('manual_rekening')" class="text-xs text-rose-600">{{ err('manual_rekening') }}</p>
-                    <button v-if="form.manual_rekening.length < 5" type="button" class="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-accent-700 hover:bg-accent-50" @click="tambahRekening">
-                        <Icon icon="heroicons:plus" class="h-4 w-4" /> Tambah rekening
-                    </button>
+                    <UiButton v-if="form.manual_rekening.length < 5" variant="soft" size="sm" icon="heroicons:plus" @click="tambahRekening">Tambah rekening</UiButton>
                     <p v-if="form.manual_enabled && !form.manual_rekening.length" class="text-xs text-amber-700">Tambahkan minimal satu rekening agar transfer manual tampil di checkout.</p>
                 </div>
-                <div class="mt-4 max-w-xs">
-                    <label class="text-sm font-medium text-ink" for="m-batas">Batas waktu transfer (jam)</label>
-                    <input id="m-batas" v-model="form.manual_batas_jam" type="number" min="1" max="168" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                </div>
+                <UiInput v-model="form.manual_batas_jam" class="mt-4 max-w-xs" label="Batas waktu transfer (jam)" type="number" min="1" max="168" required :error="err('manual_batas_jam')" />
             </section>
 
             <!-- Saldo & reseller -->
-            <section class="rounded-2xl bg-white p-5 ring-1 ring-slate-200/70">
+            <section class="rounded-2xl bg-white p-4 ring-1 ring-slate-200/70 sm:p-5">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <h2 class="text-base font-semibold text-ink">Saldo &amp; harga reseller</h2>
                         <p class="mt-1 text-sm text-slate-500">Top-up saldo lewat QRIS. Pembeli dengan saldo saat ini &ge; batas mendapat harga reseller (dicek saat checkout, sebelum saldo dipotong).</p>
                     </div>
-                    <label class="flex cursor-pointer items-center gap-2 text-sm font-medium text-ink">
-                        <input v-model="form.reseller_otomatis" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-accent-600" />
-                        Harga reseller berdasarkan saldo
-                    </label>
+                    <UiCheckbox v-model="form.reseller_otomatis" label="Harga reseller berdasarkan saldo" class="font-medium" />
                 </div>
                 <div class="mt-4 grid gap-4 sm:grid-cols-3">
-                    <div>
-                        <label class="text-sm font-medium text-ink" for="r-min">Minimal saldo reseller (Rp)</label>
-                        <input id="r-min" v-model="form.reseller_min_saldo" type="number" min="1000" step="1000" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <p v-if="err('reseller_min_saldo')" class="mt-1 text-xs text-rose-600">{{ err('reseller_min_saldo') }}</p>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-ink" for="t-min">Minimal top-up (Rp)</label>
-                        <input id="t-min" v-model="form.topup_min" type="number" min="1000" step="1000" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <p v-if="err('topup_min')" class="mt-1 text-xs text-rose-600">{{ err('topup_min') }}</p>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-ink" for="t-max">Maksimal top-up (Rp)</label>
-                        <input id="t-max" v-model="form.topup_max" type="number" min="1000" step="1000" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                        <p v-if="err('topup_max')" class="mt-1 text-xs text-rose-600">{{ err('topup_max') }}</p>
-                    </div>
+                    <UiInput v-model="form.reseller_min_saldo" label="Minimal saldo reseller (Rp)" type="number" min="1000" step="1000" required :error="err('reseller_min_saldo')" />
+                    <UiInput v-model="form.topup_min" label="Minimal top-up (Rp)" type="number" min="1000" step="1000" required :error="err('topup_min')" />
+                    <UiInput v-model="form.topup_max" label="Maksimal top-up (Rp)" type="number" min="1000" step="1000" required :error="err('topup_max')" />
                 </div>
                 <p class="mt-3 text-xs text-slate-500">Top-up hanya tersedia bila QRIS aktif. Akun dengan role reseller (diatur di Pengguna) selalu mendapat harga reseller.</p>
             </section>
 
             <div class="sticky bottom-4 flex justify-end">
-                <button type="submit" :disabled="form.processing" class="h-11 rounded-xl bg-accent-600 px-6 text-sm font-semibold text-white shadow-lg shadow-accent-600/20 hover:bg-accent-700 disabled:opacity-50">
-                    {{ form.processing ? 'Menyimpan…' : 'Simpan Pengaturan' }}
-                </button>
+                <UiButton type="submit" size="lg" class="shadow-lg shadow-primary/20" icon="heroicons:check" :loading="form.processing">Simpan Pengaturan</UiButton>
             </div>
         </form>
     </div>

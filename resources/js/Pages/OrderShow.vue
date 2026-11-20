@@ -3,6 +3,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import StatusBadge from '@/Components/Admin/StatusBadge.vue'
 import StarRating from '@/Components/StarRating.vue'
+import { UiButton, UiTextarea } from '@/Components/ui'
 import { rupiah } from '@/lib/format'
 
 const props = defineProps({
@@ -81,14 +82,12 @@ const waLink = computed(() => (props.whatsapp ? `https://wa.me/${props.whatsapp.
                     <p class="mt-1 text-sm text-slate-500">Bayar <b class="text-ink">tepat</b> sesuai nominal agar terdeteksi otomatis.</p>
                     <img v-if="order.qr_image_url" :src="order.qr_image_url" alt="Kode QRIS pembayaran" class="mx-auto mt-4 h-64 w-64 rounded-xl border border-slate-200 bg-white p-2" />
                     <p class="mt-4 text-3xl font-bold tracking-tight text-ink">{{ rupiah(order.total) }}</p>
-                    <button type="button" class="mt-1 inline-flex h-9 items-center rounded-lg px-3 text-xs font-semibold text-brand-600 hover:bg-slate-100" @click="salin(order.total, 'total')">{{ copied === 'total' ? 'Tersalin' : 'Salin nominal' }}</button>
+                    <UiButton variant="ghost" size="sm" class="mt-1 text-primary" :icon="copied === 'total' ? 'heroicons:check' : 'heroicons:clipboard-document'" @click="salin(order.total, 'total')">{{ copied === 'total' ? 'Tersalin' : 'Salin nominal' }}</UiButton>
                     <p v-if="sisa" class="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-800">
                         <Icon icon="heroicons:clock" class="h-4 w-4" /> Sisa waktu {{ sisa }}
                     </p>
                     <div class="mt-4 flex flex-col items-center gap-2">
-                        <a v-if="order.checkout_url" :href="order.checkout_url" target="_blank" rel="noopener" class="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700">
-                            Buka halaman bayar <Icon icon="heroicons:arrow-top-right-on-square" class="h-4 w-4" />
-                        </a>
+                        <UiButton v-if="order.checkout_url" :href="order.checkout_url" external icon-right="heroicons:arrow-top-right-on-square">Buka halaman bayar</UiButton>
                         <p class="flex items-center gap-1.5 text-xs text-slate-500"><span class="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> Status diperbarui otomatis setelah kamu bayar</p>
                     </div>
                 </div>
@@ -103,7 +102,7 @@ const waLink = computed(() => (props.whatsapp ? `https://wa.me/${props.whatsapp.
                                 <p class="font-mono text-base font-semibold text-ink">{{ r.nomor }}</p>
                                 <p class="text-xs text-slate-500">a.n. {{ r.nama }}</p>
                             </div>
-                            <button type="button" class="-my-2 inline-flex h-9 shrink-0 items-center rounded-lg px-2.5 text-xs font-semibold text-brand-600 hover:bg-slate-100" @click="salin(r.nomor, `rek${i}`)">{{ copied === `rek${i}` ? 'Tersalin' : 'Salin' }}</button>
+                            <UiButton variant="ghost" size="sm" class="-my-2 text-primary" :icon="copied === `rek${i}` ? 'heroicons:check' : 'heroicons:clipboard-document'" @click="salin(r.nomor, `rek${i}`)">{{ copied === `rek${i}` ? 'Tersalin' : 'Salin' }}</UiButton>
                         </li>
                     </ul>
                     <p class="mt-3 text-sm text-slate-600">Total transfer: <b class="text-ink">{{ rupiah(order.total) }}</b><span v-if="order.expires_label"> · batas {{ order.expires_label }}</span></p>
@@ -112,16 +111,16 @@ const waLink = computed(() => (props.whatsapp ? `https://wa.me/${props.whatsapp.
                     <div v-else-if="order.status === 'menunggu_verifikasi'" class="mt-4 rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-800 ring-1 ring-blue-200">Bukti sudah diterima dan sedang diverifikasi. Kamu bisa mengganti bukti bila salah unggah.</div>
 
                     <form class="mt-4" @submit.prevent="kirimBukti">
-                        <label class="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-slate-200 px-4 py-6 text-center transition hover:border-brand-400 hover:bg-slate-50">
+                        <label class="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-slate-300 px-4 py-6 text-center transition hover:border-primary hover:bg-slate-50 focus-within:ring-2 focus-within:ring-primary-ring/50">
                             <Icon icon="heroicons:arrow-up-tray" class="h-6 w-6 text-slate-400" />
                             <span class="text-sm font-medium text-ink">{{ form.bukti ? form.bukti.name : 'Pilih foto bukti transfer' }}</span>
                             <span class="text-xs text-slate-400">JPG, PNG, atau WEBP, maks. 2 MB</span>
                             <input type="file" accept="image/png,image/jpeg,image/webp" class="sr-only" @change="form.bukti = $event.target.files?.[0] ?? null" />
                         </label>
                         <p v-if="form.errors.bukti" class="mt-1 text-xs text-rose-600">{{ form.errors.bukti }}</p>
-                        <button type="submit" :disabled="!form.bukti || form.processing" class="mt-3 h-11 w-full rounded-xl bg-brand-600 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-40">
-                            {{ form.processing ? 'Mengunggah…' : order.ada_bukti ? 'Ganti Bukti' : 'Kirim Bukti' }}
-                        </button>
+                        <UiButton type="submit" block class="mt-3" icon="heroicons:paper-airplane" :loading="form.processing" :disabled="!form.bukti">
+                            {{ order.ada_bukti ? 'Ganti Bukti' : 'Kirim Bukti' }}
+                        </UiButton>
                     </form>
                 </div>
 
@@ -151,15 +150,15 @@ const waLink = computed(() => (props.whatsapp ? `https://wa.me/${props.whatsapp.
                                     <p class="text-xs font-medium text-slate-500">Email / username</p>
                                     <div class="mt-1 flex items-center gap-2">
                                         <code class="truncate rounded-md bg-white px-2.5 py-1.5 text-sm text-ink ring-1 ring-slate-200">{{ item.kredensial.email }}</code>
-                                        <button type="button" class="-my-2 inline-flex h-9 shrink-0 items-center rounded-lg px-2.5 text-xs font-semibold text-brand-600 hover:bg-slate-100" @click="salin(item.kredensial.email, `e${item.id}`)">{{ copied === `e${item.id}` ? 'Tersalin' : 'Salin' }}</button>
+                                        <UiButton variant="ghost" size="sm" class="-my-2 text-primary" :icon="copied === `e${item.id}` ? 'heroicons:check' : 'heroicons:clipboard-document'" @click="salin(item.kredensial.email, `e${item.id}`)">{{ copied === `e${item.id}` ? 'Tersalin' : 'Salin' }}</UiButton>
                                     </div>
                                 </div>
                                 <div class="min-w-0">
                                     <p class="text-xs font-medium text-slate-500">Password</p>
                                     <div class="mt-1 flex items-center gap-2">
                                         <code class="rounded-md bg-white px-2.5 py-1.5 text-sm text-ink ring-1 ring-slate-200">{{ shown[item.id] ? item.kredensial.password : '••••••••' }}</code>
-                                        <button type="button" class="-my-2 inline-flex h-9 shrink-0 items-center rounded-lg px-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-100" @click="shown[item.id] = !shown[item.id]">{{ shown[item.id] ? 'Tutup' : 'Lihat' }}</button>
-                                        <button type="button" class="-my-2 inline-flex h-9 shrink-0 items-center rounded-lg px-2.5 text-xs font-semibold text-brand-600 hover:bg-slate-100" @click="salin(item.kredensial.password, `p${item.id}`)">{{ copied === `p${item.id}` ? 'Tersalin' : 'Salin' }}</button>
+                                        <UiButton variant="ghost" size="sm" square class="-my-2" :icon="shown[item.id] ? 'heroicons:eye-slash' : 'heroicons:eye'" :label="shown[item.id] ? 'Sembunyikan password' : 'Lihat password'" @click="shown[item.id] = !shown[item.id]" />
+                                        <UiButton variant="ghost" size="sm" class="-my-2 text-primary" :icon="copied === `p${item.id}` ? 'heroicons:check' : 'heroicons:clipboard-document'" @click="salin(item.kredensial.password, `p${item.id}`)">{{ copied === `p${item.id}` ? 'Tersalin' : 'Salin' }}</UiButton>
                                     </div>
                                 </div>
                                 <p v-if="item.kredensial.info" class="text-sm text-ink sm:col-span-2"><span class="text-xs font-medium text-slate-500">Info: </span>{{ item.kredensial.info }}</p>
@@ -169,14 +168,14 @@ const waLink = computed(() => (props.whatsapp ? `https://wa.me/${props.whatsapp.
                                     <span class="text-xs text-slate-500">Ulasanmu:</span>
                                     <StarRating :model-value="item.ulasan.rating" size="h-3.5 w-3.5" />
                                     <span v-if="item.ulasan.komentar" class="text-slate-600">"{{ item.ulasan.komentar }}"</span>
-                                    <button type="button" class="-my-2 inline-flex h-9 items-center rounded-lg px-2.5 text-xs font-semibold text-brand-600 hover:bg-slate-100" @click="editingReview[item.id] = true">Ubah</button>
+                                    <UiButton variant="ghost" size="sm" class="-my-2 text-primary" icon="heroicons:pencil-square" @click="editingReview[item.id] = true">Ubah</UiButton>
                                 </div>
                                 <form v-else class="rounded-xl border border-slate-200 p-3" @submit.prevent="kirimUlasan(item)">
                                     <p class="text-xs font-medium text-slate-600">{{ item.ulasan ? 'Ubah ulasan' : 'Beri ulasan untuk akun ini' }}</p>
                                     <StarRating v-model="reviewForms[item.id].rating" editable size="h-6 w-6" class="mt-1.5" :label="`Rating ${item.produk}`" />
                                     <p v-if="reviewForms[item.id].errors.rating" class="mt-1 text-xs text-rose-600">{{ reviewForms[item.id].errors.rating }}</p>
-                                    <textarea v-model="reviewForms[item.id].komentar" rows="2" maxlength="1000" placeholder="Ceritakan pengalamanmu (opsional)" :aria-label="`Komentar ${item.produk}`" class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none" />
-                                    <button type="submit" :disabled="!reviewForms[item.id].rating || reviewForms[item.id].processing" class="mt-2 h-9 rounded-lg bg-brand-600 px-4 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-40">Kirim Ulasan</button>
+                                    <UiTextarea v-model="reviewForms[item.id].komentar" class="mt-2" rows="2" maxlength="1000" placeholder="Ceritakan pengalamanmu (opsional)" :aria-label="`Komentar ${item.produk}`" :error="reviewForms[item.id].errors.komentar" />
+                                    <UiButton type="submit" size="sm" class="mt-2" :loading="reviewForms[item.id].processing" :disabled="!reviewForms[item.id].rating">Kirim Ulasan</UiButton>
                                 </form>
                             </div>
                         </li>
@@ -194,9 +193,9 @@ const waLink = computed(() => (props.whatsapp ? `https://wa.me/${props.whatsapp.
                         <div v-if="order.paid_at" class="flex justify-between text-xs text-slate-500"><dt>Dibayar</dt><dd>{{ order.paid_at }}</dd></div>
                     </dl>
                 </div>
-                <a v-if="waLink" :href="waLink" target="_blank" rel="noopener" class="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 text-sm font-semibold text-ink hover:bg-slate-50">
+                <UiButton v-if="waLink" :href="waLink" external variant="secondary" block>
                     <Icon icon="logos:whatsapp-icon" class="h-4 w-4" /> Hubungi admin / klaim garansi
-                </a>
+                </UiButton>
             </aside>
         </div>
     </section>

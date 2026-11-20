@@ -36,7 +36,7 @@ const active = computed(() => hovered.value ?? highlighted.value)
                     <div class="relative flex w-full flex-1 items-end justify-center pb-1">
                         <span
                             v-if="active === i"
-                            class="absolute z-10 -translate-y-full rounded-md bg-accent-600 px-2 py-1 text-[11px] font-semibold whitespace-nowrap text-white shadow"
+                            class="absolute z-10 -translate-y-full rounded-md bg-primary px-2 py-1 text-[11px] font-semibold whitespace-nowrap text-white shadow"
                             :class="i >= data.length - 2 ? 'right-0' : i <= 1 ? 'left-0' : ''"
                             :style="{ bottom: `${Math.max(d.nilai / max * 100, 2)}%` }"
                         >{{ rupiah(d.nilai) }}</span>

@@ -1,4 +1,5 @@
 <script setup>
+import { UiButton, UiCheckbox, UiInput, UiSelect } from '@/Components/ui'
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { rupiah } from '@/lib/format'
@@ -47,69 +48,48 @@ const err = (k) => form.errors[k]
 
         <form class="mt-5 space-y-4" @submit.prevent="submit">
             <section class="grid gap-4 rounded-2xl bg-white p-4 ring-1 ring-slate-200/70 sm:grid-cols-3 sm:p-5">
-                <div class="sm:col-span-3">
-                    <label class="text-sm font-medium text-ink" for="fs-nama">Nama</label>
-                    <input id="fs-nama" v-model="form.nama" type="text" required maxlength="80" placeholder="Flash Sale Gajian" class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                    <p v-if="err('nama')" class="mt-1 text-xs text-rose-600">{{ err('nama') }}</p>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-ink" for="fs-mulai">Mulai</label>
-                    <input id="fs-mulai" v-model="form.mulai_at" type="datetime-local" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                    <p v-if="err('mulai_at')" class="mt-1 text-xs text-rose-600">{{ err('mulai_at') }}</p>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-ink" for="fs-selesai">Selesai</label>
-                    <input id="fs-selesai" v-model="form.selesai_at" type="datetime-local" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                    <p v-if="err('selesai_at')" class="mt-1 text-xs text-rose-600">{{ err('selesai_at') }}</p>
-                </div>
-                <label class="flex items-center gap-2 text-sm font-medium text-ink sm:mt-7">
-                    <input v-model="form.is_aktif" type="checkbox" class="h-5 w-5 rounded border-slate-300 text-accent-600" />
-                    Aktif
-                </label>
+                <UiInput v-model="form.nama" class="sm:col-span-3" label="Nama" required maxlength="80" placeholder="Flash Sale Gajian" :error="err('nama')" />
+                <UiInput v-model="form.mulai_at" label="Mulai" type="datetime-local" required :error="err('mulai_at')" />
+                <UiInput v-model="form.selesai_at" label="Selesai" type="datetime-local" required :error="err('selesai_at')" />
+                <UiCheckbox v-model="form.is_aktif" label="Aktif" class="font-medium sm:mt-7" />
                 <p class="text-xs text-slate-500 sm:col-span-3">Waktu dalam WIB. Banner &amp; hitung mundur muncul di beranda pembeli selama sale berlangsung.</p>
             </section>
 
             <section class="rounded-2xl bg-white p-4 ring-1 ring-slate-200/70 sm:p-5">
                 <div class="flex items-center justify-between gap-3">
                     <h2 class="text-base font-semibold text-ink">Produk sale</h2>
-                    <button type="button" class="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-accent-700 ring-1 ring-accent-200 hover:bg-accent-50" @click="tambah">
-                        <Icon icon="heroicons:plus" class="h-4 w-4" /> Tambah varian
-                    </button>
+                    <UiButton variant="soft" size="sm" icon="heroicons:plus" @click="tambah">Tambah varian</UiButton>
                 </div>
                 <p v-if="err('items')" class="mt-2 text-xs text-rose-600">{{ err('items') }}</p>
 
                 <ul class="mt-3 space-y-3">
                     <li v-for="(item, i) in form.items" :key="i" class="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200/70">
-                        <div class="grid gap-3 sm:grid-cols-[1fr_150px_120px_auto] sm:items-start">
-                            <div>
-                                <label class="text-xs font-medium text-slate-600" :for="`fs-v-${i}`">Varian</label>
-                                <select :id="`fs-v-${i}`" v-model="item.product_variant_id" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none">
-                                    <option value="" disabled>Pilih varian…</option>
-                                    <option v-for="v in variants" :key="v.id" :value="v.id">{{ v.label }}</option>
-                                </select>
-                                <p v-if="variantById[item.product_variant_id]" class="mt-1 text-[11px] text-slate-500">
-                                    Harga normal {{ rupiah(variantById[item.product_variant_id].harga) }} · stok {{ variantById[item.product_variant_id].stok }}
-                                    <span v-if="item.terjual"> · {{ item.terjual }} terjual di sale ini</span>
-                                </p>
-                                <p v-if="err(`items.${i}.product_variant_id`)" class="mt-1 text-xs text-rose-600">{{ err(`items.${i}.product_variant_id`) }}</p>
-                            </div>
-                            <div>
-                                <label class="text-xs font-medium text-slate-600" :for="`fs-h-${i}`">Harga sale (Rp)</label>
-                                <input :id="`fs-h-${i}`" v-model.number="item.harga_sale" type="number" min="0" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                                <p v-if="diskon(item)" class="mt-1 text-[11px] font-semibold text-rose-600">-{{ diskon(item) }}%</p>
-                                <p v-if="err(`items.${i}.harga_sale`)" class="mt-1 text-xs text-rose-600">{{ err(`items.${i}.harga_sale`) }}</p>
-                            </div>
-                            <div>
-                                <label class="text-xs font-medium text-slate-600" :for="`fs-k-${i}`">Kuota</label>
-                                <input :id="`fs-k-${i}`" v-model.number="item.kuota" type="number" min="1" placeholder="Tanpa batas" class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
-                                <p v-if="err(`items.${i}.kuota`)" class="mt-1 text-xs text-rose-600">{{ err(`items.${i}.kuota`) }}</p>
-                            </div>
-                            <button type="button" class="flex h-10 items-center justify-center gap-1.5 rounded-xl px-3 text-sm text-rose-600 hover:bg-rose-50 sm:mt-6 sm:w-10 sm:px-0" :aria-label="`Hapus baris ${i + 1}`" @click="hapus(i)">
-                                <Icon icon="heroicons:trash" class="h-4 w-4" /><span class="sm:hidden">Hapus</span>
-                            </button>
+                        <div class="grid gap-3 sm:grid-cols-[1fr_150px_130px_auto] sm:items-start">
+                            <UiSelect
+                                v-model="item.product_variant_id"
+                                label="Varian"
+                                required
+                                placeholder="Pilih varian…"
+                                :options="variants.map((v) => ({ value: v.id, label: v.label }))"
+                                :error="err(`items.${i}.product_variant_id`)"
+                                :hint="variantById[item.product_variant_id] ? `Harga normal ${rupiah(variantById[item.product_variant_id].harga)} · stok ${variantById[item.product_variant_id].stok}${item.terjual ? ` · ${item.terjual} terjual di sale ini` : ''}` : ''"
+                            />
+                            <UiInput
+                                v-model.number="item.harga_sale"
+                                label="Harga sale (Rp)"
+                                type="number"
+                                min="0"
+                                required
+                                :error="err(`items.${i}.harga_sale`)"
+                                :hint="diskon(item) ? `Diskon ${diskon(item)}%` : ''"
+                            />
+                            <UiInput v-model.number="item.kuota" label="Kuota" type="number" min="1" placeholder="Tanpa batas" :error="err(`items.${i}.kuota`)" />
+                            <UiButton variant="ghost" icon="heroicons:trash" class="text-rose-600 hover:bg-rose-50 hover:text-rose-700 sm:mt-7 sm:w-11 sm:px-0" :label="`Hapus baris ${i + 1}`" @click="hapus(i)">
+                                <span class="sm:hidden">Hapus</span>
+                            </UiButton>
                         </div>
                     </li>
-                    <li v-if="!form.items.length" class="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+                    <li v-if="!form.items.length" class="rounded-xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">
                         Belum ada varian. Klik "Tambah varian".
                     </li>
                 </ul>
@@ -117,10 +97,8 @@ const err = (k) => form.errors[k]
             </section>
 
             <div class="flex flex-wrap items-center justify-between gap-3">
-                <button v-if="sale" type="button" class="h-11 rounded-xl px-4 text-sm font-medium text-rose-600 hover:bg-rose-50" @click="hapusSale">Hapus flash sale</button>
-                <button type="submit" :disabled="form.processing" class="ml-auto h-11 rounded-xl bg-accent-600 px-6 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50">
-                    {{ sale ? 'Simpan' : 'Buat Flash Sale' }}
-                </button>
+                <UiButton v-if="sale" variant="danger-soft" icon="heroicons:trash" @click="hapusSale">Hapus flash sale</UiButton>
+                <UiButton type="submit" class="ml-auto" :icon="sale ? 'heroicons:check' : 'heroicons:bolt'" :loading="form.processing">{{ sale ? 'Simpan' : 'Buat Flash Sale' }}</UiButton>
             </div>
         </form>
     </div>

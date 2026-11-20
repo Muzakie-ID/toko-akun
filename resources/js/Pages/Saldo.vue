@@ -2,6 +2,7 @@
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import Pagination from '@/Components/Admin/Pagination.vue'
+import { UiButton, UiChip, UiInput } from '@/Components/ui'
 import { rupiah } from '@/lib/format'
 
 const props = defineProps({
@@ -50,7 +51,7 @@ const kirim = () => form.post('/saldo/topup')
                     </div>
                     <p v-if="kurangKeReseller > 0" class="mt-2 text-xs text-slate-600">
                         Kurang {{ rupiah(kurangKeReseller) }}.
-                        <button v-if="topup.tersedia" type="button" class="-my-2 inline-block py-2 font-semibold text-brand-600 underline" @click="topupKeReseller">Isi nominalnya</button>
+                        <UiButton v-if="topup.tersedia" variant="link" class="ml-1" @click="topupKeReseller">Isi nominalnya</UiButton>
                     </p>
                 </template>
                 <p v-else class="mt-2 text-sm text-slate-600">Harga reseller hanya untuk akun yang ditetapkan admin.</p>
@@ -62,20 +63,23 @@ const kirim = () => form.post('/saldo/topup')
             <h2 class="text-base font-semibold text-ink">Top-up via QRIS</h2>
             <template v-if="topup.tersedia">
                 <div class="mt-3 flex flex-wrap gap-2">
-                    <button v-for="p in presets" :key="p" type="button" class="h-10 rounded-full border px-4 text-sm font-medium transition" :class="Number(form.jumlah) === p ? 'border-ink bg-ink text-white' : 'border-slate-200 text-slate-600 hover:border-slate-400'" @click="form.jumlah = p">
-                        {{ rupiah(p) }}
-                    </button>
+                    <UiChip v-for="p in presets" :key="p" :active="Number(form.jumlah) === p" @click="form.jumlah = p">{{ rupiah(p) }}</UiChip>
                 </div>
                 <div class="mt-3 flex flex-wrap items-start gap-3">
-                    <div class="w-full max-w-xs">
-                        <label for="jumlah" class="sr-only">Nominal top-up</label>
-                        <input id="jumlah" v-model.number="form.jumlah" type="number" :min="topup.min" :max="topup.max" step="1000" required placeholder="Nominal lain" class="h-11 w-full rounded-xl border border-slate-300 px-3.5 text-sm focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none" />
-                        <p v-if="form.errors.jumlah" class="mt-1 text-xs text-rose-600">{{ form.errors.jumlah }}</p>
-                        <p v-else class="mt-1 text-xs text-slate-500">{{ rupiah(topup.min) }} – {{ rupiah(topup.max) }}. Kode unik QRIS (Rp1–999) tidak masuk saldo.</p>
-                    </div>
-                    <button type="submit" :disabled="form.processing || !form.jumlah" class="h-11 rounded-xl bg-brand-600 px-6 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-40">
-                        {{ form.processing ? 'Membuat tagihan…' : 'Top-up Sekarang' }}
-                    </button>
+                    <UiInput
+                        v-model.number="form.jumlah"
+                        class="w-full max-w-xs"
+                        type="number"
+                        :min="topup.min"
+                        :max="topup.max"
+                        step="1000"
+                        required
+                        placeholder="Nominal lain"
+                        aria-label="Nominal top-up"
+                        :error="form.errors.jumlah"
+                        :hint="`${rupiah(topup.min)} – ${rupiah(topup.max)}. Kode unik QRIS (Rp1–999) tidak masuk saldo.`"
+                    />
+                    <UiButton type="submit" :loading="form.processing" :disabled="!form.jumlah" icon="heroicons:qr-code">Top-up Sekarang</UiButton>
                 </div>
             </template>
             <p v-else class="mt-2 text-sm text-slate-500">Top-up sedang tidak tersedia. Coba lagi nanti.</p>
@@ -84,7 +88,7 @@ const kirim = () => form.post('/saldo/topup')
                 <li v-for="t in menunggu" :key="t.invoice">
                     <Link :href="`/saldo/topup/${t.invoice}`" class="flex items-center justify-between rounded-xl bg-amber-50 px-4 py-2.5 text-sm text-amber-900 ring-1 ring-amber-200 hover:bg-amber-100">
                         <span>Top-up {{ rupiah(t.total) }} menunggu pembayaran (s/d {{ t.expires_label }})</span>
-                        <span class="font-semibold">Bayar &rarr;</span>
+                        <span class="flex items-center gap-1 font-semibold">Bayar <Icon icon="heroicons:arrow-right" class="h-4 w-4" /></span>
                     </Link>
                 </li>
             </ul>

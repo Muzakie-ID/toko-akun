@@ -1,4 +1,5 @@
 <script setup>
+import { UiButton, UiCheckbox, UiField, UiInput, UiSelect } from '@/Components/ui'
 import { useForm } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
@@ -64,56 +65,24 @@ const submit = () => {
 
 <template>
     <form class="grid gap-3 sm:grid-cols-2 lg:grid-cols-6" @submit.prevent="submit">
-        <div class="lg:col-span-1">
-            <label class="text-xs font-medium text-slate-600" :for="`jenis-${variant?.id ?? 'baru'}`">Tipe akun</label>
-            <select :id="`jenis-${variant?.id ?? 'baru'}`" v-model="form.jenis_akun" :disabled="terkunci" class="mt-1 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none">
-                <option v-for="opt in jenisAkunOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-            </select>
-            <p v-if="form.errors.jenis_akun" class="mt-1 text-xs text-red-600">{{ form.errors.jenis_akun }}</p>
-        </div>
+        <UiSelect v-model="form.jenis_akun" label="Tipe akun" :disabled="terkunci" :options="jenisAkunOptions" :error="form.errors.jenis_akun" />
 
-        <div class="lg:col-span-2">
-            <span class="text-xs font-medium text-slate-600">Durasi</span>
+        <UiField class="lg:col-span-2" label="Durasi" :error="form.errors.durasi_hari" :hint="terkunci ? 'Tipe & durasi terkunci karena sudah ada stok.' : ''">
             <div class="flex gap-2">
-                <input v-model="form.durasi_jumlah" type="number" min="1" required :disabled="terkunci" aria-label="Jumlah durasi" class="mt-1 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none" />
-                <select v-model="form.durasi_satuan" :disabled="terkunci" aria-label="Satuan durasi" class="mt-1 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none">
-                    <option value="hari">Hari</option>
-                    <option value="bulan">Bulan</option>
-                    <option value="tahun">Tahun</option>
-                </select>
+                <UiInput v-model="form.durasi_jumlah" class="flex-1" type="number" min="1" required :disabled="terkunci" aria-label="Jumlah durasi" />
+                <UiSelect v-model="form.durasi_satuan" class="flex-1" :disabled="terkunci" aria-label="Satuan durasi" :options="[{ value: 'hari', label: 'Hari' }, { value: 'bulan', label: 'Bulan' }, { value: 'tahun', label: 'Tahun' }]" />
             </div>
-            <p v-if="form.errors.durasi_hari" class="mt-1 text-xs text-red-600">{{ form.errors.durasi_hari }}</p>
-            <p v-else-if="terkunci" class="mt-1 text-xs text-slate-400">Tipe & durasi terkunci karena sudah ada stok.</p>
-        </div>
+        </UiField>
 
-        <div>
-            <label class="text-xs font-medium text-slate-600" :for="`harga-${variant?.id ?? 'baru'}`">Harga jual (Rp)</label>
-            <input :id="`harga-${variant?.id ?? 'baru'}`" v-model="form.harga" type="number" min="0" required class="mt-1 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none" />
-            <p v-if="form.errors.harga" class="mt-1 text-xs text-red-600">{{ form.errors.harga }}</p>
-        </div>
-
-        <div>
-            <label class="text-xs font-medium text-slate-600" :for="`asli-${variant?.id ?? 'baru'}`">Harga coret</label>
-            <input :id="`asli-${variant?.id ?? 'baru'}`" v-model="form.harga_asli" type="number" min="0" placeholder="opsional" class="mt-1 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none" />
-            <p v-if="form.errors.harga_asli" class="mt-1 text-xs text-red-600">{{ form.errors.harga_asli }}</p>
-        </div>
-
-        <div>
-            <label class="text-xs font-medium text-slate-600" :for="`reseller-${variant?.id ?? 'baru'}`">Harga reseller</label>
-            <input :id="`reseller-${variant?.id ?? 'baru'}`" v-model="form.harga_reseller" type="number" min="0" placeholder="= harga jual" class="mt-1 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none" />
-            <p v-if="form.errors.harga_reseller" class="mt-1 text-xs text-red-600">{{ form.errors.harga_reseller }}</p>
-        </div>
+        <UiInput v-model="form.harga" label="Harga jual (Rp)" type="number" min="0" required :error="form.errors.harga" />
+        <UiInput v-model="form.harga_asli" label="Harga coret" type="number" min="0" placeholder="opsional" :error="form.errors.harga_asli" />
+        <UiInput v-model="form.harga_reseller" label="Harga reseller" type="number" min="0" placeholder="= harga jual" :error="form.errors.harga_reseller" />
 
         <div class="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-6">
-            <label class="flex items-center gap-2 text-sm text-slate-600">
-                <input v-model="form.is_aktif" type="checkbox" class="h-4 w-4 rounded border-slate-300" />
-                Aktif (tampil di katalog)
-            </label>
+            <UiCheckbox v-model="form.is_aktif" label="Aktif (tampil di katalog)" />
             <div class="ml-auto flex gap-2">
-                <button v-if="variant" type="button" class="h-9 rounded-lg px-3 text-sm font-medium text-slate-600 hover:bg-slate-100" @click="emit('done')">Batal</button>
-                <button type="submit" :disabled="form.processing" class="h-9 rounded-lg bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50">
-                    {{ variant ? 'Simpan Varian' : 'Tambah Varian' }}
-                </button>
+                <UiButton v-if="variant" variant="ghost" @click="emit('done')">Batal</UiButton>
+                <UiButton type="submit" :icon="variant ? 'heroicons:check' : 'heroicons:plus'" :loading="form.processing">{{ variant ? 'Simpan Varian' : 'Tambah Varian' }}</UiButton>
             </div>
         </div>
     </form>

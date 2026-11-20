@@ -1,4 +1,5 @@
 <script setup>
+import { UiButton, UiInput, UiSelect, UiTextarea } from '@/Components/ui'
 import { Head, useForm } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
@@ -75,67 +76,38 @@ const placeholder = computed(() =>
 
         <form v-else class="mt-6 grid gap-6 lg:grid-cols-[1fr_300px]" @submit.prevent="submit('preview')">
             <div class="space-y-4 rounded-2xl bg-white ring-1 ring-slate-200/70 p-5">
-                <div>
-                    <label for="variant" class="block text-sm font-medium text-ink">Varian produk</label>
-                    <select
-                        id="variant"
-                        v-model="form.product_variant_id"
-                        class="mt-1.5 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none"
-                    >
-                        <option v-for="v in variants" :key="v.id" :value="v.id">
-                            {{ v.produk }} — {{ v.jenis_akun_label }} — {{ v.durasi_label }} ({{ v.jumlah_stok }} stok)
-                        </option>
-                    </select>
-                    <p v-if="form.errors.product_variant_id" class="mt-1 text-xs text-red-600">{{ form.errors.product_variant_id }}</p>
-                </div>
+                <UiSelect
+                    v-model="form.product_variant_id"
+                    label="Varian produk"
+                    :options="variants.map((v) => ({ value: v.id, label: `${v.produk} — ${v.jenis_akun_label} — ${v.durasi_label} (${v.jumlah_stok} stok)` }))"
+                    :error="form.errors.product_variant_id"
+                />
 
-                <div v-if="isSharing">
-                    <label for="slot_default" class="block text-sm font-medium text-ink">Slot default</label>
-                    <input
-                        id="slot_default"
-                        v-model="form.slot_default"
-                        type="number"
-                        min="2"
-                        max="50"
-                        class="mt-1.5 h-11 w-32 rounded-xl border border-slate-300 bg-white px-3 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none"
-                    />
-                    <p class="mt-1 text-xs text-slate-500">Dipakai untuk baris yang kolom slot-nya kosong.</p>
-                    <p v-if="form.errors.slot_default" class="mt-1 text-xs text-red-600">{{ form.errors.slot_default }}</p>
-                </div>
+                <UiInput
+                    v-if="isSharing"
+                    v-model="form.slot_default"
+                    class="max-w-40"
+                    label="Slot default"
+                    type="number"
+                    min="2"
+                    max="50"
+                    hint="Dipakai untuk baris yang kolom slot-nya kosong."
+                    :error="form.errors.slot_default"
+                />
 
                 <div>
-                    <div class="flex items-baseline justify-between">
-                        <label for="akun" class="block text-sm font-medium text-ink">Daftar akun</label>
+                    <div class="mb-1.5 flex items-baseline justify-between">
+                        <label for="akun" class="text-sm font-medium text-ink">Daftar akun</label>
                         <span class="text-xs text-slate-400">{{ lineCount }} baris</span>
                     </div>
-                    <textarea
-                        id="akun"
-                        v-model="form.akun"
-                        rows="12"
-                        spellcheck="false"
-                        :placeholder="placeholder"
-                        class="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 font-mono text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none"
-                        :class="{ 'border-red-400': form.errors.akun }"
-                    />
-                    <p v-if="form.errors.akun" class="mt-1 text-xs text-red-600">{{ form.errors.akun }}</p>
+                    <UiTextarea id="akun" v-model="form.akun" rows="12" spellcheck="false" class="[&_textarea]:font-mono" :placeholder="placeholder" :error="form.errors.akun" />
                 </div>
 
                 <div class="flex flex-wrap gap-2.5">
-                    <button
-                        type="submit"
-                        :disabled="form.processing || !lineCount"
-                        class="h-11 rounded-xl border border-accent-600 px-5 text-sm font-semibold text-ink transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                        Cek Preview
-                    </button>
-                    <button
-                        type="button"
-                        :disabled="form.processing || !preview || !validCount"
-                        class="h-11 rounded-xl bg-accent-600 px-5 text-sm font-semibold text-white transition hover:bg-accent-700 disabled:cursor-not-allowed disabled:opacity-40"
-                        @click="submit('simpan')"
-                    >
+                    <UiButton type="submit" variant="secondary" icon="heroicons:eye" :loading="form.processing && form.aksi === 'preview'" :disabled="!lineCount">Cek Preview</UiButton>
+                    <UiButton icon="heroicons:check" :loading="form.processing && form.aksi === 'simpan'" :disabled="!preview || !validCount" @click="submit('simpan')">
                         Simpan {{ preview ? validCount : '' }} Akun Valid
-                    </button>
+                    </UiButton>
                 </div>
             </div>
 
