@@ -1,9 +1,14 @@
 <?php
 
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductVariantController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\StockController;
 use App\Http\Controllers\Admin\StockImportController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\QrismuzWebhookController;
@@ -41,6 +46,17 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 Route::middleware(['auth', 'role:admin,karyawan'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
+
+    Route::get('/pesanan', [AdminOrderController::class, 'index'])->name('orders.index');
+    Route::get('/pesanan/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+    Route::get('/pesanan/{order}/bukti', [AdminOrderController::class, 'proof'])->name('orders.proof');
+    Route::post('/pesanan/{order}/verifikasi', [AdminOrderController::class, 'approve'])->name('orders.approve');
+    Route::post('/pesanan/{order}/tolak', [AdminOrderController::class, 'reject'])->name('orders.reject');
+    Route::post('/pesanan/{order}/kirim-ulang', [AdminOrderController::class, 'retry'])->name('orders.retry');
+    Route::post('/pesanan/{order}/batal', [AdminOrderController::class, 'cancel'])->name('orders.cancel');
+    Route::post('/pesanan/{order}/refund', [AdminOrderController::class, 'refund'])->name('orders.refund');
+    Route::put('/pesanan/{order}/catatan', [AdminOrderController::class, 'note'])->name('orders.note');
+
     Route::resource('produk', ProductController::class)
         ->except('show')
         ->parameters(['produk' => 'product'])
@@ -49,6 +65,24 @@ Route::middleware(['auth', 'role:admin,karyawan'])->prefix('admin')->name('admin
     Route::put('/varian/{variant}', [ProductVariantController::class, 'update'])->name('variants.update');
     Route::delete('/varian/{variant}', [ProductVariantController::class, 'destroy'])->name('variants.destroy');
 
+    Route::get('/kategori', [CategoryController::class, 'index'])->name('categories.index');
+    Route::post('/kategori', [CategoryController::class, 'store'])->name('categories.store');
+    Route::put('/kategori/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/kategori/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+    Route::get('/stok', [StockController::class, 'index'])->name('stocks.index');
     Route::get('/stok/import', [StockImportController::class, 'create'])->name('stocks.import');
     Route::post('/stok/import', [StockImportController::class, 'store'])->name('stocks.import.store');
+    Route::put('/stok/{stock}', [StockController::class, 'update'])->name('stocks.update');
+    Route::delete('/stok/{stock}', [StockController::class, 'destroy'])->name('stocks.destroy');
+
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/pengguna', [UserController::class, 'index'])->name('users.index');
+        Route::post('/pengguna', [UserController::class, 'store'])->name('users.store');
+        Route::put('/pengguna/{user}/role', [UserController::class, 'updateRole'])->name('users.role');
+
+        Route::get('/pengaturan', [SettingController::class, 'edit'])->name('settings.edit');
+        Route::put('/pengaturan', [SettingController::class, 'update'])->name('settings.update');
+        Route::post('/pengaturan/tes-qris', [SettingController::class, 'testQris'])->name('settings.test-qris');
+    });
 });

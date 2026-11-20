@@ -111,7 +111,7 @@ const submit = () => {
             </label>
             <div class="ml-auto flex gap-2">
                 <button v-if="variant" type="button" class="h-9 rounded-lg px-3 text-sm font-medium text-slate-600 hover:bg-slate-100" @click="emit('done')">Batal</button>
-                <button type="submit" :disabled="form.processing" class="h-9 rounded-lg bg-brand-900 px-4 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+                <button type="submit" :disabled="form.processing" class="h-9 rounded-lg bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50">
                     {{ variant ? 'Simpan Varian' : 'Tambah Varian' }}
                 </button>
             </div>

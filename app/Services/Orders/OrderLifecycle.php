@@ -30,7 +30,10 @@ class OrderLifecycle
         $updated = DB::transaction(function () use ($order, $paidAt): bool {
             $locked = Order::lockForUpdate()->find($order->id);
 
-            $canBePaid = $locked->status->isAwaitingPayment() || $locked->status === OrderStatus::Kedaluwarsa;
+            // Kedaluwarsa/dibatalkan hanya bisa dilunasi bila uangnya memang masuk telat (keputusan admin)
+            $canBePaid = $locked->status->isAwaitingPayment()
+                || $locked->status === OrderStatus::Kedaluwarsa
+                || ($locked->status === OrderStatus::Dibatalkan && $locked->late_paid_at !== null);
             if (! $canBePaid) {
                 return false;
             }

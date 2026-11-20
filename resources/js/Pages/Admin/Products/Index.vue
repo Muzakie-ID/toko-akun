@@ -20,12 +20,12 @@ const hapus = (product) => {
 </script>
 
 <template>
-    <div class="mx-auto max-w-5xl">
+    <div class="mx-auto max-w-6xl">
         <Head title="Produk" />
 
         <div class="flex flex-wrap items-center justify-between gap-3">
-            <h1 class="text-2xl font-bold text-ink">Produk</h1>
-            <Link href="/admin/produk/create" class="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-900 px-4 text-sm font-semibold text-white transition hover:bg-brand-700">
+            <h1 class="text-2xl font-semibold tracking-tight text-ink">Produk</h1>
+            <Link href="/admin/produk/create" class="inline-flex h-10 items-center gap-1.5 rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white transition hover:bg-accent-700">
                 <Icon icon="heroicons:plus" class="h-4 w-4" />
                 Tambah Produk
             </Link>
@@ -38,7 +38,7 @@ const hapus = (product) => {
             </label>
         </form>
 
-        <div class="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+        <div class="mt-4 overflow-x-auto rounded-2xl bg-white ring-1 ring-slate-200/70">
             <table class="w-full text-left text-sm">
                 <thead class="border-b border-slate-200 bg-slate-50 text-xs text-slate-500">
                     <tr>
@@ -85,7 +85,7 @@ const hapus = (product) => {
                     :href="link.url"
                     preserve-scroll
                     class="rounded-lg px-3 py-1.5 text-sm"
-                    :class="link.active ? 'bg-brand-900 font-semibold text-white' : 'text-slate-600 hover:bg-white'"
+                    :class="link.active ? 'bg-accent-600 font-semibold text-white' : 'text-slate-600 hover:bg-white'"
                 ><span v-html="link.label" /></Link>
                 <span v-else class="px-3 py-1.5 text-sm text-slate-300" v-html="link.label" />
             </template>

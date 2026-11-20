@@ -40,16 +40,16 @@ const hapusVarian = (variant) => {
 </script>
 
 <template>
-    <div class="mx-auto max-w-5xl">
+    <div class="mx-auto max-w-6xl">
         <Head :title="product ? `Edit ${product.nama}` : 'Tambah Produk'" />
 
         <Link href="/admin/produk" class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-ink">
             <Icon icon="heroicons:arrow-left" class="h-4 w-4" />
             Semua produk
         </Link>
-        <h1 class="mt-2 text-2xl font-bold text-ink">{{ product ? product.nama : 'Tambah Produk' }}</h1>
+        <h1 class="mt-2 text-2xl font-semibold tracking-tight text-ink">{{ product ? product.nama : 'Tambah Produk' }}</h1>
 
-        <form class="mt-6 grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:grid-cols-2" @submit.prevent="submit">
+        <form class="mt-6 grid gap-4 rounded-2xl bg-white ring-1 ring-slate-200/70 p-5 sm:grid-cols-2" @submit.prevent="submit">
             <div>
                 <label for="nama" class="text-sm font-medium text-ink">Nama produk</label>
                 <input id="nama" v-model="form.nama" type="text" required placeholder="Netflix Premium" class="mt-1 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none" />
@@ -86,7 +86,7 @@ const hapusVarian = (variant) => {
                     <input v-model="form.is_populer" type="checkbox" class="h-4 w-4 rounded border-slate-300" />
                     Tandai populer
                 </label>
-                <button type="submit" :disabled="form.processing" class="ml-auto h-10 rounded-xl bg-brand-900 px-5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+                <button type="submit" :disabled="form.processing" class="ml-auto h-10 rounded-xl bg-accent-600 px-5 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50">
                     {{ product ? 'Simpan Produk' : 'Buat Produk' }}
                 </button>
             </div>
@@ -96,7 +96,7 @@ const hapusVarian = (variant) => {
             <h2 class="text-lg font-bold text-ink">Varian</h2>
             <p class="mt-1 text-sm text-slate-500">Setiap varian = tipe akun &times; durasi, dengan harga dan stok sendiri.</p>
 
-            <div class="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <div class="mt-3 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200/70">
                 <div v-for="variant in variants" :key="variant.id" class="border-b border-slate-100 px-5 py-3.5 last:border-b-0">
                     <VariantEditor
                         v-if="editingId === variant.id"
@@ -121,7 +121,7 @@ const hapusVarian = (variant) => {
                 <p v-if="!variants.length" class="px-5 py-6 text-center text-sm text-slate-500">Belum ada varian. Produk tanpa varian tidak bisa dibeli.</p>
             </div>
 
-            <div class="mt-4 rounded-2xl border border-dashed border-slate-300 bg-white p-5">
+            <div class="mt-4 rounded-2xl border border-dashed border-accent-200 bg-white p-5">
                 <h3 class="mb-3 text-sm font-semibold text-ink">Tambah varian</h3>
                 <VariantEditor :product-id="product.id" :jenis-akun-options="jenisAkunOptions" />
             </div>

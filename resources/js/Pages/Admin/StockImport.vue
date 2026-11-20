@@ -49,10 +49,10 @@ const placeholder = computed(() =>
 </script>
 
 <template>
-    <div class="mx-auto max-w-5xl">
+    <div class="mx-auto max-w-6xl">
         <Head title="Input Stok Massal" />
 
-        <h1 class="text-2xl font-bold text-ink">Input Stok Massal</h1>
+        <h1 class="text-2xl font-semibold tracking-tight text-ink">Input Stok Massal</h1>
         <p class="mt-1 text-sm text-slate-500">Tempel daftar akun, cek preview, lalu simpan. Kredensial disimpan terenkripsi.</p>
 
         <div
@@ -74,7 +74,7 @@ const placeholder = computed(() =>
         </div>
 
         <form v-else class="mt-6 grid gap-6 lg:grid-cols-[1fr_300px]" @submit.prevent="submit('preview')">
-            <div class="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
+            <div class="space-y-4 rounded-2xl bg-white ring-1 ring-slate-200/70 p-5">
                 <div>
                     <label for="variant" class="block text-sm font-medium text-ink">Varian produk</label>
                     <select
@@ -124,14 +124,14 @@ const placeholder = computed(() =>
                     <button
                         type="submit"
                         :disabled="form.processing || !lineCount"
-                        class="h-11 rounded-xl border border-brand-900 px-5 text-sm font-semibold text-ink transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        class="h-11 rounded-xl border border-accent-600 px-5 text-sm font-semibold text-ink transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         Cek Preview
                     </button>
                     <button
                         type="button"
                         :disabled="form.processing || !preview || !validCount"
-                        class="h-11 rounded-xl bg-brand-900 px-5 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40"
+                        class="h-11 rounded-xl bg-accent-600 px-5 text-sm font-semibold text-white transition hover:bg-accent-700 disabled:cursor-not-allowed disabled:opacity-40"
                         @click="submit('simpan')"
                     >
                         Simpan {{ preview ? validCount : '' }} Akun Valid
@@ -139,7 +139,7 @@ const placeholder = computed(() =>
                 </div>
             </div>
 
-            <aside class="h-fit rounded-2xl border border-slate-200 bg-white p-5 text-sm">
+            <aside class="h-fit rounded-2xl bg-white ring-1 ring-slate-200/70 p-5 text-sm">
                 <h2 class="font-semibold text-ink">Format per baris</h2>
                 <code class="mt-2 block rounded-lg bg-slate-50 px-3 py-2 text-xs text-ink ring-1 ring-slate-200">email|password|slot|info</code>
                 <ul class="mt-3 space-y-1.5 text-xs leading-5 text-slate-600">
@@ -158,7 +158,7 @@ const placeholder = computed(() =>
                 <span class="font-semibold text-emerald-700">{{ validCount }} valid</span>
                 <span v-if="invalidCount"> &middot; <span class="font-semibold text-rose-600">{{ invalidCount }} error</span> (tidak akan disimpan)</span>
             </p>
-            <div class="mt-3 overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+            <div class="mt-3 overflow-x-auto rounded-2xl bg-white ring-1 ring-slate-200/70">
                 <table class="w-full text-left text-sm">
                     <thead class="border-b border-slate-200 bg-slate-50 text-xs text-slate-500">
                         <tr>
