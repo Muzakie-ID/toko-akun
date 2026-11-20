@@ -19,4 +19,21 @@
     --color-ink: #0f172a;
     --color-ink-soft: #64748b;
     --color-surface: #f8fafc;
+
+    /* Panel admin: aksen biru, latar abu kebiruan (mengikuti referensi dashboard) */
+    --color-accent-50: #eef3ff;
+    --color-accent-100: #dfe8ff;
+    --color-accent-200: #c2d3ff;
+    --color-accent-300: #93b0fc;
+    --color-accent-400: #6088f6;
+    --color-accent-500: #3d68f0;
+    --color-accent-600: #2f55e4;
+    --color-accent-700: #2543c4;
+    --color-admin-bg: #f3f5f9;
+}
+
+/* Batang chart abu bergaris diagonal (referensi dashboard) */
+.bar-striped {
+    background-color: #eef0f4;
+    background-image: repeating-linear-gradient(135deg, #dfe3ea 0 3px, transparent 3px 8px);
 }

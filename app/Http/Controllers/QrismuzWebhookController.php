@@ -74,7 +74,7 @@ class QrismuzWebhookController extends Controller
             return;
         }
 
-        $paidAt = isset($data['paid_at']) ? Carbon::parse($data['paid_at']) : null;
+        $paidAt = isset($data['paid_at']) ? Carbon::parse($data['paid_at'])->setTimezone(config('app.timezone')) : null;
         $lifecycle->markPaid($order, $paidAt);
     }
 
@@ -87,7 +87,7 @@ class QrismuzWebhookController extends Controller
     {
         DB::transaction(function () use ($order, $data): void {
             $order->update([
-                'late_paid_at' => isset($data['paid_at']) ? Carbon::parse($data['paid_at']) : now(),
+                'late_paid_at' => isset($data['paid_at']) ? Carbon::parse($data['paid_at'])->setTimezone(config('app.timezone')) : now(),
                 'catatan_admin' => trim($order->catatan_admin."\nPembayaran QRIS masuk setelah tagihan ".($order->status === OrderStatus::Dibatalkan ? 'dibatalkan' : 'kedaluwarsa').'. Proses atau refund dari panel.'),
             ]);
         });

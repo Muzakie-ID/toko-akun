@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductVariantController;
 use App\Http\Controllers\Admin\StockImportController;
@@ -39,6 +40,7 @@ Route::post('/webhooks/qrismuz', QrismuzWebhookController::class)->middleware('t
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
 Route::middleware(['auth', 'role:admin,karyawan'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', DashboardController::class)->name('dashboard');
     Route::resource('produk', ProductController::class)
         ->except('show')
         ->parameters(['produk' => 'product'])

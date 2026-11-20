@@ -122,7 +122,7 @@ class OrderCheckout
             'checkout_url' => $transaction['checkout_url'],
             'qr_image_url' => $transaction['qr_image_url'],
             'qris_payload' => $transaction['qris_payload'],
-            'expires_at' => $transaction['expires_at'] ? Carbon::parse($transaction['expires_at']) : now()->addMinutes(15),
+            'expires_at' => $transaction['expires_at'] ? Carbon::parse($transaction['expires_at'])->setTimezone(config('app.timezone')) : now()->addMinutes(15),
         ]);
     }
 
