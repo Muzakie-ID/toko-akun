@@ -24,9 +24,11 @@ class DashboardController extends Controller
     {
         $thisMonth = now()->startOfMonth();
         $lastMonth = now()->subMonthNoOverflow()->startOfMonth();
+        // Bandingkan periode yang sama (mis. tgl 1–20 vs tgl 1–20 bulan lalu), bukan bulan berjalan vs bulan penuh
+        $lastMonthSamePoint = $lastMonth->copy()->add($thisMonth->diff(now()))->min($thisMonth);
 
         $revenueThisMonth = $this->revenueBetween($thisMonth, now());
-        $revenueLastMonth = $this->revenueBetween($lastMonth, $thisMonth);
+        $revenueLastMonth = $this->revenueBetween($lastMonth, $lastMonthSamePoint);
         $target = (int) $settings->get('store.target_bulanan');
 
         return Inertia::render('Admin/Dashboard', [
@@ -35,21 +37,21 @@ class DashboardController extends Controller
                 $this->stat(
                     'Pesanan',
                     Order::where('created_at', '>=', $thisMonth)->count(),
-                    Order::whereBetween('created_at', [$lastMonth, $thisMonth])->count(),
+                    Order::whereBetween('created_at', [$lastMonth, $lastMonthSamePoint])->count(),
                     'angka',
                     'heroicons:shopping-bag',
                 ),
                 $this->stat(
                     'Akun Terjual',
                     OrderItem::where('delivered_at', '>=', $thisMonth)->count(),
-                    OrderItem::whereBetween('delivered_at', [$lastMonth, $thisMonth])->count(),
+                    OrderItem::whereBetween('delivered_at', [$lastMonth, $lastMonthSamePoint])->count(),
                     'angka',
                     'heroicons:key',
                 ),
                 $this->stat(
                     'Pembeli Baru',
                     $this->buyers()->where('created_at', '>=', $thisMonth)->count(),
-                    $this->buyers()->whereBetween('created_at', [$lastMonth, $thisMonth])->count(),
+                    $this->buyers()->whereBetween('created_at', [$lastMonth, $lastMonthSamePoint])->count(),
                     'angka',
                     'heroicons:user-group',
                 ),

@@ -28,14 +28,17 @@ products         id, category_id, nama, slug, deskripsi, banner, logo, garansi_h
 product_variants id, product_id, jenis_akun (private|sharing), durasi_hari (bebas: 7, 30, 60, 365, ...),
                  harga, harga_asli, harga_reseller, is_aktif      -- unik per (produk, jenis_akun, durasi_hari)
 stocks           id, product_variant_id, email*, email_hash, password*, total_slot, created_by
-stock_slots      id, stock_id, nomor (1..total_slot), info*, order_item_id (nullable, ditambah saat fase order)
+stock_slots      id, stock_id, nomor (1..total_slot), info*, order_item_id (nullable, unik)
                  -- slot tersedia jika order_item_id null.   * = terenkripsi
-carts            id, user_id, session_token (guest, opsional)
-cart_items       id, cart_id, product_variant_id, qty
-orders           id, user_id, no_invoice, subtotal, total, status
-                 (menunggu_bayar|diproses|selesai|dibatalkan|refund), bukti_bayar_path
-order_items      id, order_id, product_variant_id, snapshot_nama, snapshot_harga, qty,
-                 qty selalu 1 per baris (1 baris = 1 slot), slot ditautkan via stock_slots.order_item_id
+cart_items       id, user_id, product_variant_id, qty      -- keranjang hanya untuk user login
+orders           id, user_id, no_invoice, metode_bayar (qris|manual), status, subtotal, kode_unik, total,
+                 gateway_id, checkout_url, qr_image_url, qris_payload, expires_at, paid_at, late_paid_at,
+                 bukti_bayar_path, alasan_tolak, catatan_admin
+                 status: menunggu_bayar|menunggu_verifikasi|diproses|selesai|dibatalkan|kedaluwarsa|refund
+order_items      id, order_id, product_variant_id, snapshot_produk, snapshot_jenis_akun, snapshot_durasi_hari,
+                 harga, delivered_at, aktif_sampai   -- 1 baris = 1 akun/slot (qty dipecah saat checkout)
+settings         key, value   -- pengaturan toko & pembayaran; API key & webhook secret terenkripsi
+webhook_events   event_id (unik), type, merchant_ref   -- dedup webhook qris-muz
 reviews          id, order_item_id, rating (1-5), komentar
 wishlists        id, user_id, product_id
 ```
@@ -57,15 +60,20 @@ Catatan:
 
 ## 4. Alur Utama
 
-### 4.1 Checkout (Fase 1 — pembayaran manual)
-1. Customer pilih produk + tipe akun (private/sharing) + durasi → keranjang, atau "Beli Sekarang" (langsung checkout).
-2. Checkout: ringkasan, data kontak, transfer manual → upload bukti bayar → order status `menunggu_bayar`.
-3. Karyawan/Admin verifikasi bukti di panel → status `diproses`.
-4. Sistem **otomatis**: ambil slot stok kosong (FIFO per varian; produk sharing berbagi kredensial yang sama) → tautkan ke `order_item`.
-5. Customer melihat kredensial di halaman "Pesanan Saya" + notifikasi (email/in-app). Order `selesai` setelah semua item terkirim.
+### 4.1 Checkout
+1. Customer pilih produk + tipe akun (private/sharing) + durasi → keranjang, atau "Beli Sekarang". Harga & stok dihitung ulang di server; reseller dapat `harga_reseller`.
+2. Pilih metode bayar (yang aktif di Pengaturan):
+   - **QRIS (qris-muz)**: sistem membuat tagihan di gateway qris-muz milik owner (`merchant_ref` = no invoice). Total = `final_amount` (subtotal + kode unik). Halaman pesanan menampilkan QR + hitung mundur dan memperbarui status otomatis.
+   - **Transfer manual**: pembeli transfer ke rekening di Pengaturan lalu unggah bukti → `menunggu_verifikasi` → karyawan/admin terima atau tolak (dengan alasan, pembeli bisa unggah ulang).
+3. Lunas (webhook `transaction.paid` dengan nominal cocok, atau verifikasi manual) → `diproses` → sistem **otomatis** ambil slot kosong (FIFO per varian, transaksi + lock) → `selesai` + email ke pembeli.
+4. Stok kurang → pesanan tetap `diproses` dan otomatis dilengkapi saat stok varian itu diinput.
+5. Tidak dibayar sampai batas waktu → `kedaluwarsa` (webhook `transaction.expired` atau command `orders:expire` tiap 5 menit).
+6. Uang masuk setelah kedaluwarsa/dibatalkan (`transaction.late_paid`) → ditandai "perlu dicek"; admin memilih Proses Pesanan atau Refund.
 
-### 4.2 Fase 2 — Gateway
-Ganti langkah 2–3 dengan payment gateway (QRIS/VA/e-wallet). Webhook `paid` → auto-assign kredensial tanpa verifikasi manual.
+### 4.2 Integrasi qris-muz
+- Pengaturan admin: URL API, API key proyek, webhook secret (disimpan terenkripsi, write-only), masa berlaku tagihan, tes koneksi (`GET /v1/status`).
+- Webhook: `POST /webhooks/qrismuz`, verifikasi `HMAC-SHA256(secret, timestamp + "." + body)` + toleransi 5 menit, dedup `X-Event-Id`. Nominal tidak cocok tidak melunasi pesanan, hanya dicatat untuk admin.
+- Membatalkan pesanan QRIS dari panel ikut membatalkan tagihan di gateway.
 
 ## 5. Halaman (Inertia)
 
@@ -84,11 +92,14 @@ Ganti langkah 2–3 dengan payment gateway (QRIS/VA/e-wallet). Webhook `paid` �
 ### Admin/Karyawan (satu panel, beda menu per permission)
 | Halaman | Isi |
 |---------|-----|
-| Dashboard | Statistik: penjualan, order menunggu verifikasi, stok menipis |
+| Dashboard | **Sudah dibuat** (`/admin`): pendapatan/pesanan/akun terjual/pembeli baru + pertumbuhan vs periode sama bulan lalu, chart pendapatan bulanan/harian, gauge target bulanan, perlu tindakan, pesanan terbaru, stok menipis |
 | Produk | CRUD produk + varian (tipe akun × durasi) + harga (normal & reseller) (**sudah dibuat**: `/admin/produk`). Tipe & durasi varian terkunci setelah ada stok; produk/varian yang punya stok tidak bisa dihapus, cukup dinonaktifkan |
 | Stok Kredensial | Input massal `email\|password\|slot\|info` per varian dengan preview (**sudah dibuat**: `/admin/stok/import`), daftar stok, filter tersedia/terjual |
-| Order | Daftar + detail, verifikasi bukti bayar (terima/tolak) → trigger kirim otomatis. Klaim garansi: update kredensial di stok |
-| User (Admin only) | Kelola user, jadikan karyawan/reseller |
+| Order | **Sudah dibuat** (`/admin/pesanan`): tab status, cari, filter; detail dengan kredensial & bukti; terima/tolak, kirim akun yang kurang, proses bayar telat, batal, refund, catatan |
+| Stok Akun | **Sudah dibuat** (`/admin/stok`): daftar + slot terjual per invoice, edit kredensial & info slot (klaim garansi), hapus bila belum terjual |
+| Kategori | **Sudah dibuat** (`/admin/kategori`) |
+| User (Admin only) | **Sudah dibuat** (`/admin/pengguna`): ubah role, buat akun karyawan/admin |
+| Pengaturan (Admin only) | **Sudah dibuat** (`/admin/pengaturan`): toko & target, QRIS qris-muz, rekening transfer manual |
 
 ## 6. Scope
 
@@ -96,7 +107,7 @@ Ganti langkah 2–3 dengan payment gateway (QRIS/VA/e-wallet). Webhook `paid` �
 - Auth + role middleware (customer/reseller/karyawan/admin)
 - Katalog: filter kategori/harga/durasi/jenis akun, sort (terpopuler, terbaru, harga), search
 - Detail produk, keranjang, beli langsung
-- Checkout transfer manual + upload bukti
+- Checkout QRIS qris-muz (otomatis) + transfer manual dengan upload bukti
 - Panel admin: produk, stok kredensial, order + verifikasi
 - **Kirim kredensial otomatis** saat order disetujui
 - Pesanan saya + detail kredensial
@@ -105,7 +116,6 @@ Ganti langkah 2–3 dengan payment gateway (QRIS/VA/e-wallet). Webhook `paid` �
 - Produk sharing (multi-slot) + klaim garansi manual
 
 ### Fase 2
-- Payment gateway (QRIS/VA), webhook auto-paid
 - Notifikasi WhatsApp/Telegram
 - Komisi & dashboard reseller (referral)
 - Kupon/voucher, flash sale ("Deals" di navbar)
