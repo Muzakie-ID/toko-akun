@@ -6,7 +6,7 @@ use App\Enums\JenisAkun;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariant;
-use App\Models\User;
+use App\Models\Review;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -31,9 +31,10 @@ class CatalogController extends Controller
 
         $products = $this->activeProducts();
         $user = $request->user();
+        $wishlistIds = $user ? $user->wishlists()->pluck('product_id')->flip() : collect();
 
         $cards = $products
-            ->map(fn (Product $product) => $this->card($product, $user, $filters))
+            ->map(fn (Product $product) => ProductCardPresenter::card($product, $user, $filters, $wishlistIds->has($product->id)))
             ->filter()
             ->when($filters['q'] ?? null, fn ($c, $q) => $c->filter(fn (array $card) => str_contains(mb_strtolower($card['nama']), mb_strtolower($q))))
             ->when($filters['kategori'] ?? null, fn ($c, $slugs) => $c->whereIn('kategori_slug', $slugs))
@@ -51,7 +52,7 @@ class CatalogController extends Controller
         return Inertia::render('Catalog', [
             'produk' => $cards->values(),
             'terlaris' => $products->sortByDesc('total_terjual')->take(6)
-                ->map(fn (Product $product) => $this->card($product, $user, []))->filter()->values(),
+                ->map(fn (Product $product) => ProductCardPresenter::card($product, $user, [], $wishlistIds->has($product->id)))->filter()->values(),
             'filters' => [
                 'q' => $filters['q'] ?? '',
                 'kategori' => $filters['kategori'] ?? [],
@@ -87,6 +88,8 @@ class CatalogController extends Controller
 
         $product->load(['category', 'variants' => fn ($query) => $query->where('is_aktif', true)->withCount('availableSlots')->orderBy('durasi_hari')]);
         $user = $request->user();
+        $distribution = $product->reviews()->where('is_tampil', true)
+            ->selectRaw('rating, count(*) as jumlah')->groupBy('rating')->pluck('jumlah', 'rating');
 
         return Inertia::render('ProductDetail', [
             'produk' => [
@@ -99,6 +102,9 @@ class CatalogController extends Controller
                 'garansi_hari' => $product->garansi_hari,
                 'terjual' => $product->total_terjual,
                 'rating' => (float) $product->rating,
+                'jumlah_ulasan' => $product->jumlah_ulasan,
+                'logo_url' => $product->logoUrl(),
+                'di_wishlist' => $user !== null && $user->wishlists()->where('product_id', $product->id)->exists(),
             ],
             'varian' => $product->variants->map(fn (ProductVariant $variant): array => [
                 'id' => $variant->id,
@@ -111,6 +117,25 @@ class CatalogController extends Controller
                 'stok' => $variant->available_slots_count,
             ]),
             'hargaReseller' => $user?->role?->value === 'reseller',
+            'ulasan' => [
+                'sebaran' => collect(range(5, 1))->map(fn (int $bintang): array => [
+                    'bintang' => $bintang,
+                    'jumlah' => (int) ($distribution[$bintang] ?? 0),
+                ]),
+                'daftar' => $product->reviews()
+                    ->with('user:id,name')
+                    ->where('is_tampil', true)
+                    ->latest()
+                    ->limit(20)
+                    ->get()
+                    ->map(fn (Review $review): array => [
+                        'id' => $review->id,
+                        'nama' => $this->maskName($review->user->name),
+                        'rating' => $review->rating,
+                        'komentar' => $review->komentar,
+                        'tanggal' => $review->created_at->diffForHumans(),
+                    ]),
+            ],
         ]);
     }
 
@@ -127,37 +152,12 @@ class CatalogController extends Controller
     }
 
     /**
-     * Kartu katalog menampilkan varian termurah yang lolos filter tipe & durasi.
-     *
-     * @param  array<string, mixed>  $filters
-     * @return array<string, mixed>|null
+     * "Budi Santoso" → "Budi S." agar nama lengkap pembeli tidak tampil publik.
      */
-    private function card(Product $product, ?User $user, array $filters): ?array
+    private function maskName(string $name): string
     {
-        $variants = $product->variants
-            ->when($filters['jenis'] ?? null, fn ($v, $jenis) => $v->filter(fn (ProductVariant $variant) => in_array($variant->jenis_akun->value, $jenis, true)))
-            ->when($filters['durasi'] ?? null, fn ($v, $durasi) => $v->whereIn('durasi_hari', array_map('intval', $durasi)));
+        $parts = preg_split('/\s+/', trim($name));
 
-        $cheapest = $variants->sortBy(fn (ProductVariant $variant) => $variant->priceFor($user))->first();
-
-        if (! $cheapest) {
-            return null;
-        }
-
-        return [
-            'id' => $product->id,
-            'slug' => $product->slug,
-            'nama' => $product->nama,
-            'kategori_slug' => $product->category->slug,
-            'harga' => $cheapest->priceFor($user),
-            'harga_asli' => $cheapest->harga_asli,
-            'jenis_akun_label' => $cheapest->jenis_akun->label(),
-            'durasi_label' => $cheapest->durasi_label,
-            'jumlah_varian' => $product->variants->count(),
-            'rating' => (float) $product->rating,
-            'terjual' => $product->total_terjual,
-            'is_populer' => $product->is_populer,
-            'stok_ada' => $product->variants->sum('available_slots_count') > 0,
-        ];
+        return count($parts) > 1 ? $parts[0].' '.mb_substr($parts[1], 0, 1).'.' : $parts[0];
     }
 }

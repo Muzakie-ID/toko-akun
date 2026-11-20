@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import VariantEditor from '@/Components/Admin/VariantEditor.vue'
 
 const props = defineProps({
@@ -18,14 +18,36 @@ const form = useForm({
     garansi_hari: props.product?.garansi_hari ?? 30,
     is_aktif: props.product?.is_aktif ?? true,
     is_populer: props.product?.is_populer ?? false,
+    logo: null,
+    hapus_logo: false,
 })
+
+const logoPreview = ref(props.product?.logo_url ?? null)
+// Setelah disimpan, ganti pratinjau lokal (blob) dengan URL logo dari server
+watch(() => props.product?.logo_url, (url) => (logoPreview.value = url ?? null))
+const pilihLogo = (event) => {
+    const file = event.target.files?.[0] ?? null
+    form.logo = file
+    form.hapus_logo = false
+    logoPreview.value = file ? URL.createObjectURL(file) : props.product?.logo_url ?? null
+}
+const hapusLogo = () => {
+    form.logo = null
+    form.hapus_logo = true
+    logoPreview.value = null
+}
 
 const submit = () => {
     if (props.product) {
-        form.put(`/admin/produk/${props.product.id}`, { preserveScroll: true })
+        // File hanya terkirim lewat POST multipart; _method=put agar tetap ke route update
+        form.transform((data) => ({ ...data, _method: 'put' })).post(`/admin/produk/${props.product.id}`, {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => form.reset('logo', 'hapus_logo'),
+        })
     } else {
         // Setelah dibuat halaman pindah ke mode edit; muat ulang form dari data server kecuali ada error validasi
-        form.post('/admin/produk', { preserveState: 'errors' })
+        form.post('/admin/produk', { preserveState: 'errors', forceFormData: true })
     }
 }
 
@@ -71,6 +93,22 @@ const hapusVarian = (variant) => {
                 <label for="garansi" class="text-sm font-medium text-ink">Garansi (hari)</label>
                 <input id="garansi" v-model="form.garansi_hari" type="number" min="0" required class="mt-1 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-ink focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus:outline-none" />
                 <p v-if="form.errors.garansi_hari" class="mt-1 text-xs text-red-600">{{ form.errors.garansi_hari }}</p>
+            </div>
+            <div class="sm:col-span-2">
+                <span class="text-sm font-medium text-ink">Logo</span>
+                <div class="mt-1.5 flex flex-wrap items-center gap-4">
+                    <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl bg-slate-50 ring-1 ring-slate-200">
+                        <img v-if="logoPreview" :src="logoPreview" alt="Pratinjau logo" class="h-full w-full object-contain" />
+                        <Icon v-else icon="heroicons:photo" class="h-6 w-6 text-slate-300" />
+                    </div>
+                    <label class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg px-3 text-sm font-medium text-accent-700 ring-1 ring-accent-200 hover:bg-accent-50">
+                        <Icon icon="heroicons:arrow-up-tray" class="h-4 w-4" /> {{ logoPreview ? 'Ganti logo' : 'Unggah logo' }}
+                        <input type="file" accept="image/png,image/jpeg,image/webp" class="sr-only" @change="pilihLogo" />
+                    </label>
+                    <button v-if="logoPreview" type="button" class="text-sm font-medium text-rose-600 hover:underline" @click="hapusLogo">Hapus</button>
+                    <p class="text-xs text-slate-500">PNG/JPG/WEBP persegi, min. 64×64, maks. 1 MB. Tanpa logo, kartu memakai huruf awal.</p>
+                </div>
+                <p v-if="form.errors.logo" class="mt-1 text-xs text-red-600">{{ form.errors.logo }}</p>
             </div>
             <div class="sm:col-span-2">
                 <label for="deskripsi" class="text-sm font-medium text-ink">Deskripsi</label>

@@ -39,8 +39,8 @@ order_items      id, order_id, product_variant_id, snapshot_produk, snapshot_jen
                  harga, delivered_at, aktif_sampai   -- 1 baris = 1 akun/slot (qty dipecah saat checkout)
 settings         key, value   -- pengaturan toko & pembayaran; API key & webhook secret terenkripsi
 webhook_events   event_id (unik), type, merchant_ref   -- dedup webhook qris-muz
-reviews          id, order_item_id, rating (1-5), komentar
-wishlists        id, user_id, product_id
+reviews          id, order_item_id (unik), user_id, product_id, rating (1-5), komentar, is_tampil
+wishlists        id, user_id, product_id (unik per user)
 ```
 
 Catatan:
@@ -54,7 +54,9 @@ Catatan:
   - `info`: opsional untuk private, **wajib** untuk sharing. Info per slot dipisah `;`; satu info saja = berlaku untuk semua slot.
   - Ada preview sebelum simpan. Baris error (format, duplikat dalam batch, sudah ada di stok varian) tidak disimpan dan disisakan di form untuk diperbaiki. Maks 1000 baris per input. Password tidak boleh mengandung `|`.
 - **Kredensial terenkripsi** di DB (email, password, info slot). `email_hash` (HMAC) dipakai untuk cek duplikat.
-- **Rating & total_terjual** di produk = agregat denormalisasi (di-update saat review/mutasi order) agar katalog cepat.
+- **Rating, jumlah_ulasan & total_terjual** di produk = agregat denormalisasi (dihitung ulang saat ulasan dibuat/diubah/disembunyikan/dihapus dan saat akun terkirim) agar katalog cepat.
+- **Ulasan**: hanya pemilik pesanan `selesai`, satu per akun yang sudah terkirim (bisa diubah). Nama pengulas disamarkan ("Budi S."). Admin/karyawan bisa menyembunyikan atau menghapus.
+- **Logo produk**: upload PNG/JPG/WEBP (min. 64×64, maks. 1 MB, SVG ditolak) ke disk `public`; tanpa logo kartu memakai huruf awal. Butuh `php artisan storage:link` dan `APP_URL` yang benar.
 - **Stocks** = gudang kredensial, input manual lewat halaman admin (bukan integrasi stok-zaka). Pengiriman otomatis: ambil slot kosong (FIFO per varian, dalam transaksi + lock), tautkan ke `order_item`.
 - **Kredensial dibaca live dari stocks** (bukan snapshot) → klaim garansi = admin perbarui email/password di stok, pembeli otomatis melihat kredensial baru.
 
@@ -86,8 +88,8 @@ Catatan:
 | Detail Produk | (belum ada desain) | Banner, varian durasi, jenis akun, stok tersedia, review, tombol Beli (`4:8`) |
 | Keranjang & Checkout | (belum ada desain) | Item, ubah qty, upload bukti bayar |
 | Pesanan Saya | (belum ada desain) | Daftar order, status, **lihat kredensial** (copy email/pass) |
-| Wishlist | — | Produk tersimpan |
-| Akun Saya | — | Profil, ganti password |
+| Wishlist | — | **Sudah dibuat** (`/wishlist`): ikon hati di kartu & detail produk |
+| Akun Saya | — | **Sudah dibuat** (`/akun`): ubah nama/email, ganti password (user Google bisa membuat password tanpa password lama) |
 
 ### Admin/Karyawan (satu panel, beda menu per permission)
 | Halaman | Isi |
@@ -98,6 +100,7 @@ Catatan:
 | Order | **Sudah dibuat** (`/admin/pesanan`): tab status, cari, filter; detail dengan kredensial & bukti; terima/tolak, kirim akun yang kurang, proses bayar telat, batal, refund, catatan |
 | Stok Akun | **Sudah dibuat** (`/admin/stok`): daftar + slot terjual per invoice, edit kredensial & info slot (klaim garansi), hapus bila belum terjual |
 | Kategori | **Sudah dibuat** (`/admin/kategori`) |
+| Ulasan | **Sudah dibuat** (`/admin/ulasan`): filter bintang/tampil, sembunyikan, hapus |
 | User (Admin only) | **Sudah dibuat** (`/admin/pengguna`): ubah role, buat akun karyawan/admin |
 | Pengaturan (Admin only) | **Sudah dibuat** (`/admin/pengaturan`): toko & target, QRIS qris-muz, rekening transfer manual |
 

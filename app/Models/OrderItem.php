@@ -73,4 +73,9 @@ class OrderItem extends Model
             'info' => $slot->info,
         ];
     }
+
+    public function review(): HasOne
+    {
+        return $this->hasOne(Review::class);
+    }
 }

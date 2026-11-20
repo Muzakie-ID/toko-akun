@@ -74,6 +74,18 @@ class DemoSeeder extends Seeder
                 $slot = $variant->availableSlots()->orderBy('stock_slots.id')->first();
                 $slot?->update(['order_item_id' => $item->id]);
                 $variant->product->increment('total_terjual');
+
+                if (random_int(1, 10) <= 6) {
+                    $item->review()->create([
+                        'user_id' => $buyer->id,
+                        'product_id' => $variant->product_id,
+                        'rating' => fake()->randomElement([5, 5, 5, 4, 4, 3]),
+                        'komentar' => fake()->randomElement([
+                            'Akun langsung masuk, lancar jaya.', 'Proses cepat, recommended!', 'Sudah dipakai sebulan aman.',
+                            'Sempat error login, admin langsung ganti akunnya.', null,
+                        ]),
+                    ]);
+                }
             }
         }
     }

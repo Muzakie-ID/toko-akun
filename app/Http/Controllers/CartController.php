@@ -34,6 +34,7 @@ class CartController extends Controller
                     'id' => $item->id,
                     'nama' => $variant->product->nama,
                     'slug' => $variant->product->slug,
+                    'logo_url' => $variant->product->logoUrl(),
                     'jenis_akun_label' => $variant->jenis_akun->label(),
                     'durasi_label' => $variant->durasi_label,
                     'harga' => $variant->priceFor($user),

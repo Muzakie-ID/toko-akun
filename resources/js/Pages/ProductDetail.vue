@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
+import StarRating from '@/Components/StarRating.vue'
 import { brandColors } from '@/lib/brand'
 import { angka, rupiah } from '@/lib/format'
 
@@ -8,7 +9,17 @@ const props = defineProps({
     produk: { type: Object, required: true },
     varian: { type: Array, required: true },
     hargaReseller: { type: Boolean, default: false },
+    ulasan: { type: Object, required: true },
 })
+
+const maxSebaran = computed(() => Math.max(...props.ulasan.sebaran.map((s) => s.jumlah), 1))
+const toggleWishlist = () => {
+    if (!user.value) {
+        router.get('/login', { kembali: `/produk/${props.produk.slug}` })
+        return
+    }
+    router.post(`/wishlist/${props.produk.slug}`, {}, { preserveScroll: true })
+}
 
 const user = computed(() => usePage().props.auth?.user)
 const warna = computed(() => brandColors(props.produk.nama))
@@ -61,17 +72,29 @@ const beli = (beliSekarang) => {
 
         <section class="mx-auto max-w-[1320px] px-4 pb-14 lg:px-15">
             <div class="grid gap-8 lg:grid-cols-2">
-                <div class="flex h-72 items-center justify-center rounded-3xl sm:h-96" :style="{ background: warna.bg }">
-                    <span class="text-8xl font-black" :style="{ color: warna.fg }">{{ produk.nama.charAt(0) }}</span>
+                <div class="relative flex h-72 items-center justify-center rounded-3xl sm:h-96" :style="{ background: warna.bg }">
+                    <img v-if="produk.logo_url" :src="produk.logo_url" :alt="`Logo ${produk.nama}`" class="h-32 w-32 rounded-3xl object-contain" />
+                    <span v-else class="text-8xl font-black" :style="{ color: warna.fg }">{{ produk.nama.charAt(0) }}</span>
+                    <button
+                        type="button"
+                        class="absolute top-4 right-4 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-sm font-medium backdrop-blur"
+                        :class="produk.di_wishlist ? 'text-rose-600' : 'text-slate-700 hover:text-rose-600'"
+                        :aria-pressed="produk.di_wishlist"
+                        @click="toggleWishlist"
+                    >
+                        <Icon :icon="produk.di_wishlist ? 'heroicons:heart-solid' : 'heroicons:heart'" class="h-4 w-4" />
+                        {{ produk.di_wishlist ? 'Tersimpan' : 'Simpan' }}
+                    </button>
                 </div>
 
                 <div>
                     <h1 class="text-3xl font-bold tracking-tight text-ink">{{ produk.nama }}</h1>
                     <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-                        <span v-if="produk.rating > 0" class="inline-flex items-center gap-1">
+                        <a v-if="produk.jumlah_ulasan > 0" href="#ulasan" class="inline-flex items-center gap-1 hover:text-ink">
                             <Icon icon="heroicons:star-solid" class="h-4 w-4 text-amber-400" />
                             <span class="font-semibold text-ink">{{ produk.rating.toLocaleString('id-ID') }}</span>
-                        </span>
+                            ({{ angka(produk.jumlah_ulasan) }} ulasan)
+                        </a>
                         <span>{{ angka(produk.terjual) }} terjual</span>
                         <span v-if="produk.garansi_hari" class="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
                             <Icon icon="heroicons:shield-check" class="h-3.5 w-3.5" /> Garansi {{ produk.garansi_hari }} hari
@@ -151,6 +174,38 @@ const beli = (beliSekarang) => {
                     </template>
                     <p v-else class="mt-6 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Produk ini belum bisa dibeli.</p>
                 </div>
+            </div>
+            <!-- Ulasan -->
+            <div id="ulasan" class="mt-14 scroll-mt-24">
+                <h2 class="text-xl font-bold text-ink">Ulasan Pembeli</h2>
+                <div v-if="produk.jumlah_ulasan" class="mt-4 grid gap-8 lg:grid-cols-[260px_1fr]">
+                    <div>
+                        <p class="text-5xl font-bold tracking-tight text-ink">{{ produk.rating.toLocaleString('id-ID') }}<span class="text-lg font-medium text-slate-400">/5</span></p>
+                        <StarRating :model-value="Math.round(produk.rating)" size="h-5 w-5" class="mt-2" />
+                        <p class="mt-1 text-sm text-slate-500">{{ angka(produk.jumlah_ulasan) }} ulasan</p>
+                        <ul class="mt-4 space-y-1.5">
+                            <li v-for="s in ulasan.sebaran" :key="s.bintang" class="flex items-center gap-2 text-xs text-slate-500">
+                                <span class="w-3 text-right">{{ s.bintang }}</span>
+                                <Icon icon="heroicons:star-solid" class="h-3 w-3 text-amber-400" />
+                                <span class="h-2 flex-1 overflow-hidden rounded-full bg-slate-100"><span class="block h-full rounded-full bg-amber-400" :style="{ width: `${(s.jumlah / maxSebaran) * 100}%` }" /></span>
+                                <span class="w-6 text-right">{{ s.jumlah }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <ul class="grid gap-3 md:grid-cols-2">
+                        <li v-for="u in ulasan.daftar" :key="u.id" class="rounded-2xl border border-slate-200 p-4">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-sm font-semibold text-ink">{{ u.nama }}</span>
+                                <span class="text-xs text-slate-400">{{ u.tanggal }}</span>
+                            </div>
+                            <StarRating :model-value="u.rating" size="h-3.5 w-3.5" class="mt-1" />
+                            <p v-if="u.komentar" class="mt-2 text-sm leading-6 text-slate-600">{{ u.komentar }}</p>
+                        </li>
+                    </ul>
+                </div>
+                <p v-else class="mt-3 rounded-2xl border border-dashed border-slate-200 px-5 py-8 text-center text-sm text-slate-500">
+                    Belum ada ulasan. Ulasan hanya bisa ditulis oleh pembeli yang sudah menerima akun.
+                </p>
             </div>
         </section>
     </div>

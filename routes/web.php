@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductVariantController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StockController;
 use App\Http\Controllers\Admin\StockImportController;
@@ -14,6 +16,8 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\QrismuzWebhookController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [CatalogController::class, 'index'])->name('home');
@@ -26,8 +30,16 @@ Route::middleware('auth')->group(function () {
     Route::delete('/keranjang/{item}', [CartController::class, 'destroy'])->name('cart.destroy');
     Route::post('/checkout', [CartController::class, 'checkout'])->middleware('throttle:10,1')->name('checkout');
 
+    Route::get('/akun', [AccountController::class, 'edit'])->name('account');
+    Route::put('/akun', [AccountController::class, 'updateProfile'])->name('account.update');
+    Route::put('/akun/password', [AccountController::class, 'updatePassword'])->middleware('throttle:6,1')->name('account.password');
+
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
+    Route::post('/wishlist/{product:slug}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+
     Route::get('/pesanan', [OrderController::class, 'index'])->name('orders');
     Route::get('/pesanan/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('/ulasan/{item}', [ReviewController::class, 'store'])->middleware('throttle:20,1')->name('reviews.store');
     Route::post('/pesanan/{order}/bukti', [OrderController::class, 'uploadProof'])->middleware('throttle:10,1')->name('orders.proof');
 });
 
@@ -71,6 +83,10 @@ Route::middleware(['auth', 'role:admin,karyawan'])->prefix('admin')->name('admin
     Route::post('/produk/{product}/varian', [ProductVariantController::class, 'store'])->name('variants.store');
     Route::put('/varian/{variant}', [ProductVariantController::class, 'update'])->name('variants.update');
     Route::delete('/varian/{variant}', [ProductVariantController::class, 'destroy'])->name('variants.destroy');
+
+    Route::get('/ulasan', [AdminReviewController::class, 'index'])->name('reviews.index');
+    Route::post('/ulasan/{review}/tampil', [AdminReviewController::class, 'toggle'])->name('reviews.toggle');
+    Route::delete('/ulasan/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
 
     Route::get('/kategori', [CategoryController::class, 'index'])->name('categories.index');
     Route::post('/kategori', [CategoryController::class, 'store'])->name('categories.store');

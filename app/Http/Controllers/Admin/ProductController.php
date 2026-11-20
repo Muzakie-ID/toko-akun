@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -55,7 +56,7 @@ class ProductController extends Controller
 
     public function store(ProductRequest $request): RedirectResponse
     {
-        $product = Product::create($request->validated());
+        $product = Product::create($this->attributes($request));
 
         return to_route('admin.products.edit', $product)
             ->with('success', 'Produk dibuat. Sekarang tambahkan varian (tipe akun & durasi).');
@@ -82,7 +83,10 @@ class ProductController extends Controller
             ]);
 
         return Inertia::render('Admin/Products/Form', [
-            'product' => $product->only(['id', 'category_id', 'nama', 'slug', 'deskripsi', 'garansi_hari', 'is_aktif', 'is_populer']),
+            'product' => [
+                ...$product->only(['id', 'category_id', 'nama', 'slug', 'deskripsi', 'garansi_hari', 'is_aktif', 'is_populer']),
+                'logo_url' => $product->logoUrl(),
+            ],
             'categories' => $this->categoryOptions(),
             'variants' => $variants,
             'jenisAkunOptions' => $this->jenisAkunOptions(),
@@ -91,7 +95,7 @@ class ProductController extends Controller
 
     public function update(ProductRequest $request, Product $product): RedirectResponse
     {
-        $product->update($request->validated());
+        $product->update($this->attributes($request, $product));
 
         return back()->with('success', 'Produk disimpan.');
     }
@@ -107,8 +111,34 @@ class ProductController extends Controller
         }
 
         $product->delete();
+        if ($product->logo) {
+            Storage::disk('public')->delete($product->logo);
+        }
 
         return to_route('admin.products.index')->with('success', "Produk \"{$product->nama}\" dihapus.");
+    }
+
+    /**
+     * Data produk dari form, termasuk menyimpan/mengganti/menghapus file logo.
+     *
+     * @return array<string, mixed>
+     */
+    private function attributes(ProductRequest $request, ?Product $product = null): array
+    {
+        $data = collect($request->validated())->except(['logo', 'hapus_logo'])->all();
+        $oldLogo = $product?->logo;
+
+        if ($request->hasFile('logo')) {
+            $data['logo'] = $request->file('logo')->store('produk', 'public');
+        } elseif ($request->boolean('hapus_logo')) {
+            $data['logo'] = null;
+        }
+
+        if ($oldLogo && array_key_exists('logo', $data) && $data['logo'] !== $oldLogo) {
+            Storage::disk('public')->delete($oldLogo);
+        }
+
+        return $data;
     }
 
     /**

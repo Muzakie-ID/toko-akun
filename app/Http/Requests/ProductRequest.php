@@ -43,6 +43,9 @@ class ProductRequest extends FormRequest
             'garansi_hari' => ['required', 'integer', 'min:0', 'max:3650'],
             'is_aktif' => ['boolean'],
             'is_populer' => ['boolean'],
+            // SVG sengaja tidak diterima karena bisa berisi skrip
+            'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:1024', 'dimensions:min_width=64,min_height=64'],
+            'hapus_logo' => ['boolean'],
         ];
     }
 
@@ -54,6 +57,7 @@ class ProductRequest extends FormRequest
         return [
             'category_id' => 'kategori',
             'garansi_hari' => 'garansi',
+            'logo' => 'logo',
         ];
     }
 
@@ -64,6 +68,9 @@ class ProductRequest extends FormRequest
     {
         return [
             'slug.unique' => 'Slug ini sudah dipakai produk lain. Ganti nama atau isi slug manual.',
+            'logo.max' => 'Ukuran logo maksimal 1 MB.',
+            'logo.mimes' => 'Logo harus PNG, JPG, atau WEBP.',
+            'logo.dimensions' => 'Logo minimal 64×64 piksel.',
         ];
     }
 }

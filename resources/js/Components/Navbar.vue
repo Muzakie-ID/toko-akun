@@ -62,7 +62,13 @@ const navLinks = [
                     <Link v-if="isStaff" href="/admin" class="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink sm:block">
                         Panel Admin
                     </Link>
-                    <Link href="/pesanan" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink">
+                    <Link href="/wishlist" class="flex items-center rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 hover:text-ink" aria-label="Wishlist">
+                        <Icon icon="heroicons:heart" class="h-5 w-5" />
+                    </Link>
+                    <Link href="/pesanan" class="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink md:block">
+                        Pesanan
+                    </Link>
+                    <Link href="/akun" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink" aria-label="Akun Saya">
                         <Icon icon="heroicons:user" class="h-5 w-5" />
                         <span class="hidden sm:inline">{{ user.name.split(' ')[0] }}</span>
                     </Link>
@@ -113,7 +119,12 @@ const navLinks = [
                 <Link href="/login" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Masuk</Link>
                 <Link href="/register" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Daftar</Link>
             </template>
-            <Link v-else-if="isStaff" href="/admin" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Panel Admin</Link>
+            <template v-else>
+                <Link href="/pesanan" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Pesanan Saya</Link>
+                <Link href="/wishlist" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Wishlist</Link>
+                <Link href="/akun" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Akun Saya</Link>
+                <Link v-if="isStaff" href="/admin" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Panel Admin</Link>
+            </template>
             <Link v-for="link in navLinks" :key="link.label" :href="link.href" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">
                 {{ link.label }}
             </Link>

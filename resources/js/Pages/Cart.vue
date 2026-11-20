@@ -31,8 +31,9 @@ const checkout = () => form.post('/checkout')
         <div v-if="items.length" class="mt-6 grid gap-8 lg:grid-cols-[1fr_380px]">
             <div class="space-y-3">
                 <article v-for="item in items" :key="item.id" class="flex flex-wrap items-center gap-4 rounded-2xl border p-4" :class="item.qty > item.stok ? 'border-rose-200 bg-rose-50/40' : 'border-slate-200'">
-                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl font-black" :style="{ background: brandColors(item.nama).bg, color: brandColors(item.nama).fg }">
-                        {{ item.nama.charAt(0) }}
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl text-xl font-black" :style="{ background: brandColors(item.nama).bg, color: brandColors(item.nama).fg }">
+                        <img v-if="item.logo_url" :src="item.logo_url" alt="" class="h-8 w-8 object-contain" />
+                        <template v-else>{{ item.nama.charAt(0) }}</template>
                     </div>
                     <div class="min-w-0 flex-1">
                         <Link :href="`/produk/${item.slug}`" class="text-sm font-semibold text-ink hover:underline">{{ item.nama }}</Link>

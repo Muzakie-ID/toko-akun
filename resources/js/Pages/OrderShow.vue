@@ -2,6 +2,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import StatusBadge from '@/Components/Admin/StatusBadge.vue'
+import StarRating from '@/Components/StarRating.vue'
 import { rupiah } from '@/lib/format'
 
 const props = defineProps({
@@ -50,6 +51,13 @@ const salin = async (teks, key) => {
     } catch {}
 }
 const shown = ref({})
+
+// Satu form ulasan per item; terbuka otomatis untuk item yang belum diulas
+const reviewForms = Object.fromEntries(
+    props.order.items.filter((i) => i.bisa_ulas).map((i) => [i.id, useForm({ rating: i.ulasan?.rating ?? 0, komentar: i.ulasan?.komentar ?? '' })]),
+)
+const editingReview = ref({})
+const kirimUlasan = (item) => reviewForms[item.id].post(`/ulasan/${item.id}`, { preserveScroll: true, onSuccess: () => (editingReview.value[item.id] = false) })
 const waLink = computed(() => (props.whatsapp ? `https://wa.me/${props.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Halo admin, saya mau klaim garansi pesanan ${props.order.invoice}`)}` : null))
 </script>
 
@@ -155,6 +163,21 @@ const waLink = computed(() => (props.whatsapp ? `https://wa.me/${props.whatsapp.
                                     </div>
                                 </div>
                                 <p v-if="item.kredensial.info" class="text-sm text-ink sm:col-span-2"><span class="text-xs font-medium text-slate-500">Info: </span>{{ item.kredensial.info }}</p>
+                            </div>
+                            <div v-if="item.bisa_ulas" class="mt-3">
+                                <div v-if="item.ulasan && !editingReview[item.id]" class="flex flex-wrap items-center gap-2 text-sm">
+                                    <span class="text-xs text-slate-500">Ulasanmu:</span>
+                                    <StarRating :model-value="item.ulasan.rating" size="h-3.5 w-3.5" />
+                                    <span v-if="item.ulasan.komentar" class="text-slate-600">"{{ item.ulasan.komentar }}"</span>
+                                    <button type="button" class="text-xs font-semibold text-brand-600" @click="editingReview[item.id] = true">Ubah</button>
+                                </div>
+                                <form v-else class="rounded-xl border border-slate-200 p-3" @submit.prevent="kirimUlasan(item)">
+                                    <p class="text-xs font-medium text-slate-600">{{ item.ulasan ? 'Ubah ulasan' : 'Beri ulasan untuk akun ini' }}</p>
+                                    <StarRating v-model="reviewForms[item.id].rating" editable size="h-6 w-6" class="mt-1.5" :label="`Rating ${item.produk}`" />
+                                    <p v-if="reviewForms[item.id].errors.rating" class="mt-1 text-xs text-rose-600">{{ reviewForms[item.id].errors.rating }}</p>
+                                    <textarea v-model="reviewForms[item.id].komentar" rows="2" maxlength="1000" placeholder="Ceritakan pengalamanmu (opsional)" :aria-label="`Komentar ${item.produk}`" class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none" />
+                                    <button type="submit" :disabled="!reviewForms[item.id].rating || reviewForms[item.id].processing" class="mt-2 h-9 rounded-lg bg-brand-600 px-4 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-40">Kirim Ulasan</button>
+                                </form>
                             </div>
                         </li>
                     </ul>

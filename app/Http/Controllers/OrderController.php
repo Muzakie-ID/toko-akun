@@ -42,7 +42,7 @@ class OrderController extends Controller
     public function show(Request $request, Order $order, Settings $settings): Response
     {
         $this->authorizeOwner($request, $order);
-        $order->load('items.slot.stock');
+        $order->load('items.slot.stock', 'items.review');
 
         return Inertia::render('OrderShow', [
             'order' => [
@@ -71,6 +71,8 @@ class OrderController extends Controller
                     'aktif_sampai' => $item->aktif_sampai?->translatedFormat('d M Y'),
                     // Kredensial hanya dikirim bila pesanan sudah lunas (bukan saat refund/batal)
                     'kredensial' => in_array($order->status, OrderStatus::paidStatuses(), true) ? $item->credentials() : null,
+                    'bisa_ulas' => $order->status === OrderStatus::Selesai && $item->delivered_at !== null && $item->product_variant_id !== null,
+                    'ulasan' => $item->review ? ['rating' => $item->review->rating, 'komentar' => $item->review->komentar] : null,
                 ]),
             ],
             'rekening' => $order->metode_bayar === MetodeBayar::Manual ? $settings->get('manual.rekening') : [],

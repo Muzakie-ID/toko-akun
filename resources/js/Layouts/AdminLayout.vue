@@ -22,6 +22,7 @@ const sections = computed(() => [
             { label: 'Kategori', href: '/admin/kategori', icon: 'heroicons:tag' },
             { label: 'Stok Akun', href: '/admin/stok', icon: 'heroicons:key', exactPrefix: '/admin/stok', exclude: '/admin/stok/import', badge: badges.value.menungguStok, badgeTone: 'amber' },
             { label: 'Input Stok Massal', href: '/admin/stok/import', icon: 'heroicons:arrow-up-tray' },
+            { label: 'Ulasan', href: '/admin/ulasan', icon: 'heroicons:star' },
         ],
     },
     ...(isAdmin.value

@@ -10,8 +10,9 @@ const warna = computed(() => brandColors(props.product.nama))
 
 <template>
     <Link :href="`/produk/${product.slug}`" class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-brand-300 hover:shadow-sm">
-        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-lg font-black" :style="{ background: warna.bg, color: warna.fg }">
-            {{ product.nama.charAt(0) }}
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg text-lg font-black" :style="{ background: warna.bg, color: warna.fg }">
+            <img v-if="product.logo_url" :src="product.logo_url" alt="" class="h-7 w-7 object-contain" />
+            <template v-else>{{ product.nama.charAt(0) }}</template>
         </div>
         <div class="min-w-0">
             <h3 class="truncate text-sm font-semibold text-ink">{{ product.nama }}</h3>
