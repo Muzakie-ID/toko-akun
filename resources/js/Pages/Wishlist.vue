@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3'
 import ProductCard from '@/Components/ProductCard.vue'
+import ProductCardCompact from '@/Components/ProductCardCompact.vue'
 
 defineProps({ produk: { type: Array, required: true } })
 </script>
@@ -11,7 +12,10 @@ defineProps({ produk: { type: Array, required: true } })
         <h1 class="text-xl font-bold text-ink sm:text-2xl">Wishlist</h1>
         <p class="mt-1 text-sm text-slate-500">Produk yang kamu simpan untuk dibeli nanti.</p>
 
-        <div v-if="produk.length" class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div v-if="produk.length" class="mt-5 grid grid-cols-2 gap-3 md:hidden">
+            <ProductCardCompact v-for="p in produk" :key="p.id" :product="p" />
+        </div>
+        <div v-if="produk.length" class="mt-6 hidden gap-4 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <ProductCard v-for="p in produk" :key="p.id" :product="p" />
         </div>
         <div v-else class="mt-16 flex flex-col items-center text-center">

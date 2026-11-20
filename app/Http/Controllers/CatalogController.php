@@ -50,8 +50,18 @@ class CatalogController extends Controller
 
         $allVariants = $products->flatMap->variants;
 
+        $resellerStatus = app(ResellerStatus::class);
+
         return Inertia::render('Catalog', [
             'produk' => $cards->values(),
+            'promo' => [
+                // Batas saldo untuk harga reseller (null bila fitur dimatikan) & diskon terbesar untuk banner
+                'resellerSaldo' => $resellerStatus->isEnabled() ? $resellerStatus->threshold() : null,
+                'diskonMaks' => (int) $allVariants
+                    ->filter(fn (ProductVariant $variant) => $variant->harga_asli > $variant->harga)
+                    ->map(fn (ProductVariant $variant) => round((1 - $variant->harga / $variant->harga_asli) * 100))
+                    ->max(),
+            ],
             'terlaris' => $products->sortByDesc('total_terjual')->take(6)
                 ->map(fn (Product $product) => ProductCardPresenter::card($product, $user, [], $wishlistIds->has($product->id)))->filter()->values(),
             'filters' => [

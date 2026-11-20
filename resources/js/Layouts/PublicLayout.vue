@@ -3,12 +3,13 @@ import { usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import Navbar from '@/Components/Navbar.vue'
 import Footer from '@/Components/Footer.vue'
+import BottomNav from '@/Components/BottomNav.vue'
 
 const flash = computed(() => usePage().props.flash ?? {})
 </script>
 
 <template>
-    <div class="flex min-h-screen flex-col bg-white">
+    <div class="flex min-h-screen flex-col bg-white pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         <Navbar />
         <div v-if="flash.success || flash.error" class="mx-auto w-full max-w-[1320px] px-4 pt-4 lg:px-15">
             <p v-if="flash.success" class="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800 ring-1 ring-emerald-200" role="status">
@@ -22,5 +23,6 @@ const flash = computed(() => usePage().props.flash ?? {})
             <slot />
         </main>
         <Footer />
+        <BottomNav />
     </div>
 </template>

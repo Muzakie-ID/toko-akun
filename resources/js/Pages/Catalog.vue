@@ -1,6 +1,7 @@
 <script setup>
-import { router } from '@inertiajs/vue3'
+import { Link, router, usePage } from '@inertiajs/vue3'
 import { computed, reactive, ref } from 'vue'
+import ProductCardCompact from '@/Components/ProductCardCompact.vue'
 import { rupiah } from '@/lib/format'
 
 const props = defineProps({
@@ -8,7 +9,17 @@ const props = defineProps({
     terlaris: { type: Array, required: true },
     filters: { type: Object, required: true },
     opsi: { type: Object, required: true },
+    promo: { type: Object, required: true },
 })
+
+const user = computed(() => usePage().props.auth?.user)
+
+// Chip kategori di HP: pilih satu (seperti referensi); panel filter tetap bisa pilih banyak
+const pilihKategori = (slug) => {
+    f.kategori = slug ? [slug] : []
+    apply()
+}
+const cariHp = () => apply()
 
 const f = reactive({
     q: props.filters.q,
@@ -46,7 +57,99 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
 </script>
 
 <template>
-    <section class="relative overflow-hidden bg-cream">
+    <!-- ===== Beranda HP (mobile-first) ===== -->
+    <div class="md:hidden">
+        <!-- Pencarian menonjol + filter -->
+        <form class="flex gap-2 px-4 pt-3" role="search" @submit.prevent="cariHp">
+            <label class="flex h-12 min-w-0 flex-1 items-center gap-2.5 rounded-2xl bg-slate-100 px-4 focus-within:ring-2 focus-within:ring-slate-300">
+                <Icon icon="heroicons:magnifying-glass" class="h-5 w-5 shrink-0 text-slate-400" />
+                <input v-model="f.q" type="search" aria-label="Cari produk" placeholder="Cari Netflix, ChatGPT, Canva…" class="w-full bg-transparent text-sm text-ink placeholder:text-slate-400 focus:outline-none" />
+            </label>
+            <button type="button" class="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-ink text-white" aria-label="Filter & urutkan" @click="filterOpen = true">
+                <Icon icon="heroicons:adjustments-horizontal" class="h-5 w-5" />
+                <span v-if="jumlahFilter" class="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold">{{ jumlahFilter }}</span>
+            </button>
+        </form>
+
+        <!-- Chip kategori -->
+        <div class="mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="tablist" aria-label="Kategori">
+            <button
+                type="button"
+                role="tab"
+                :aria-selected="!f.kategori.length"
+                class="h-9 shrink-0 rounded-full px-4 text-sm font-medium transition"
+                :class="!f.kategori.length ? 'bg-ink text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'"
+                @click="pilihKategori(null)"
+            >Semua</button>
+            <button
+                v-for="k in opsi.kategori"
+                :key="k.value"
+                type="button"
+                role="tab"
+                :aria-selected="f.kategori.length === 1 && f.kategori[0] === k.value"
+                class="h-9 shrink-0 rounded-full px-4 text-sm font-medium transition"
+                :class="f.kategori.length === 1 && f.kategori[0] === k.value ? 'bg-ink text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'"
+                @click="pilihKategori(k.value)"
+            >{{ k.label }}</button>
+        </div>
+
+        <template v-if="!adaFilter()">
+            <!-- Banner utama -->
+            <div class="mx-4 mt-3 overflow-hidden rounded-3xl bg-cream p-5">
+                <p v-if="promo.diskonMaks" class="inline-flex rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-rose-600">Hemat s.d. {{ promo.diskonMaks }}%</p>
+                <h1 class="mt-2 text-2xl leading-tight font-extrabold tracking-tight text-ink">Langganan Premium,<br /><span class="text-gold">Lebih Hemat</span></h1>
+                <p class="mt-1.5 text-sm text-slate-600">Akun dikirim otomatis begitu pembayaran masuk.</p>
+                <a href="#katalog" class="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-ink px-5 text-sm font-semibold text-white">
+                    Belanja Sekarang <Icon icon="heroicons:arrow-right" class="h-4 w-4" />
+                </a>
+            </div>
+
+            <!-- Kartu jaminan -->
+            <div class="mx-4 mt-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200/80">
+                <p class="flex items-center gap-1.5 text-sm font-semibold text-ink"><Icon icon="heroicons:shield-check" class="h-4 w-4 text-gold" /> Kenapa belanja di sini</p>
+                <ul class="mt-3 grid grid-cols-3 gap-2">
+                    <li v-for="j in [
+                        { icon: 'heroicons:bolt', label: 'Kirim', nilai: 'Otomatis' },
+                        { icon: 'heroicons:arrow-path', label: 'Garansi', nilai: 'Ganti akun' },
+                        { icon: 'heroicons:qr-code', label: 'Bayar', nilai: 'QRIS' },
+                    ]" :key="j.label" class="flex items-center gap-2">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cream text-gold"><Icon :icon="j.icon" class="h-4 w-4" /></span>
+                        <span class="min-w-0 leading-tight"><span class="block text-[10px] text-slate-400">{{ j.label }}</span><span class="block truncate text-xs font-semibold text-ink">{{ j.nilai }}</span></span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Banner saldo = harga reseller (penawaran nyata, tanpa hitung mundur palsu) -->
+            <Link v-if="promo.resellerSaldo && !user?.harga_reseller" :href="user ? '/saldo' : '/register'" class="mx-4 mt-3 flex items-center gap-3 rounded-2xl bg-ink p-4 text-white">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-gold"><Icon icon="heroicons:sparkles" class="h-5 w-5" /></span>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-sm font-semibold">Harga reseller lebih murah</span>
+                    <span class="block text-xs text-white/70">Saldo minimal {{ rupiah(promo.resellerSaldo) }}, otomatis berlaku.</span>
+                </span>
+                <span class="shrink-0 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-ink">{{ user ? 'Top-up' : 'Daftar' }}</span>
+            </Link>
+            <div v-else-if="user?.harga_reseller" class="mx-4 mt-3 flex items-center gap-3 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200">
+                <Icon icon="heroicons:sparkles-solid" class="h-5 w-5 shrink-0 text-amber-500" />
+                <p class="text-sm font-medium text-amber-900">Harga reseller aktif untukmu di semua produk.</p>
+            </div>
+
+            <!-- Paling Laris: deretan geser -->
+            <section v-if="terlaris.length" class="mt-6">
+                <div class="flex items-center justify-between px-4">
+                    <h2 class="text-base font-bold text-ink">Paling Laris</h2>
+                    <a href="#katalog" class="-my-2 py-2 text-sm font-medium text-slate-500">Lihat semua</a>
+                </div>
+                <ul class="mt-3 flex snap-x gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+                    <li v-for="p in terlaris" :key="p.id" class="w-40 shrink-0 snap-start">
+                        <ProductCardCompact :product="p" />
+                    </li>
+                </ul>
+            </section>
+        </template>
+    </div>
+
+    <!-- ===== Desktop ===== -->
+    <section class="relative hidden overflow-hidden bg-cream md:block">
         <div class="mx-auto flex max-w-[1320px] items-center justify-between gap-8 px-4 py-16 lg:px-15 lg:py-20">
             <div class="max-w-xl">
                 <h1 class="text-3xl leading-tight font-extrabold tracking-tight text-ink sm:text-4xl lg:text-[44px]">
@@ -84,7 +187,7 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
     </section>
 
     <!-- Breadcrumb -->
-    <nav aria-label="Breadcrumb" class="mx-auto max-w-[1320px] px-4 lg:px-15">
+    <nav aria-label="Breadcrumb" class="mx-auto hidden max-w-[1320px] px-4 md:block lg:px-15">
         <ol class="flex h-12 items-center gap-2 text-sm text-slate-500">
             <li><a href="/" class="hover:text-ink">Beranda</a></li>
             <li aria-hidden="true">&rsaquo;</li>
@@ -93,7 +196,7 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
     </nav>
 
     <!-- Filter cepat: tipe akun + urutan -->
-    <div class="border-y border-slate-100 bg-white">
+    <div class="hidden border-y border-slate-100 bg-white md:block">
         <div class="mx-auto flex max-w-[1320px] items-center gap-2 overflow-x-auto px-4 py-3 lg:px-15 lg:py-3.5">
             <button
                 type="button"
@@ -141,7 +244,7 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
     </div>
 
     <!-- Konten: sidebar + grid -->
-    <section id="katalog" class="mx-auto max-w-[1320px] px-4 py-8 lg:px-15">
+    <section id="katalog" class="mx-auto max-w-[1320px] scroll-mt-20 px-4 pt-6 pb-8 md:py-8 lg:px-15">
         <div class="flex gap-8">
             <!-- Sidebar filter -->
             <div v-if="filterOpen" class="fixed inset-0 z-40 bg-slate-900/40 lg:hidden" @click="filterOpen = false" />
@@ -227,11 +330,14 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
 
             <!-- Grid produk -->
             <div class="min-w-0 flex-1">
-                <h2 class="text-2xl font-bold text-ink">Produk Premium untuk Kamu</h2>
-                <p class="mt-1 text-sm text-slate-500">Temukan akun dan layanan digital sesuai kebutuhanmu.</p>
+                <h2 class="text-base font-bold text-ink md:text-2xl">{{ adaFilter() ? 'Hasil' : 'Semua Produk' }}<span class="hidden md:inline">{{ adaFilter() ? '' : ' Premium untuk Kamu' }}</span></h2>
+                <p class="mt-1 hidden text-sm text-slate-500 md:block">Temukan akun dan layanan digital sesuai kebutuhanmu.</p>
 
                 <p v-if="filters.q" class="mt-3 text-sm text-slate-600">Hasil pencarian "<span class="font-semibold text-ink">{{ filters.q }}</span>" &middot; {{ produk.length }} produk</p>
-                <div v-if="produk.length" class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div v-if="produk.length" class="mt-3 grid grid-cols-2 gap-3 md:hidden">
+                    <ProductCardCompact v-for="p in produk" :key="p.id" :product="p" />
+                </div>
+                <div v-if="produk.length" class="mt-5 hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-4">
                     <ProductCard v-for="p in produk" :key="p.id" :product="p" />
                 </div>
                 <div v-else class="mt-10 flex flex-col items-center rounded-2xl border border-dashed border-slate-200 py-14 text-center">
@@ -245,7 +351,7 @@ const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.duras
     </section>
 
     <!-- Paling Laris -->
-    <section v-if="terlaris.length" id="terlaris" class="mx-auto max-w-[1320px] px-4 pb-14 lg:px-15">
+    <section v-if="terlaris.length" id="terlaris" class="mx-auto hidden max-w-[1320px] px-4 pb-14 md:block lg:px-15">
         <div class="flex items-end justify-between">
             <div>
                 <h2 class="text-2xl font-bold text-ink">Paling Laris</h2>

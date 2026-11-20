@@ -91,7 +91,7 @@ const navLinks = [
                     </Link>
                 </template>
 
-                <Link href="/keranjang" class="relative flex h-10 items-center gap-2 rounded-lg px-2.5 text-sm sm:px-3 font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink" aria-label="Keranjang">
+                <Link href="/keranjang" class="relative hidden h-10 items-center gap-2 rounded-lg px-2.5 text-sm sm:px-3 md:flex font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink" aria-label="Keranjang">
                     <span class="relative">
                         <Icon icon="heroicons:shopping-cart" class="h-5 w-5" />
                         <span
