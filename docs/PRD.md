@@ -85,7 +85,7 @@ Ganti langkah 2–3 dengan payment gateway (QRIS/VA/e-wallet). Webhook `paid` �
 | Halaman | Isi |
 |---------|-----|
 | Dashboard | Statistik: penjualan, order menunggu verifikasi, stok menipis |
-| Produk | CRUD produk + varian (tipe akun × durasi) + harga (normal & reseller) |
+| Produk | CRUD produk + varian (tipe akun × durasi) + harga (normal & reseller) (**sudah dibuat**: `/admin/produk`). Tipe & durasi varian terkunci setelah ada stok; produk/varian yang punya stok tidak bisa dihapus, cukup dinonaktifkan |
 | Stok Kredensial | Input massal `email\|password\|slot\|info` per varian dengan preview (**sudah dibuat**: `/admin/stok/import`), daftar stok, filter tersedia/terjual |
 | Order | Daftar + detail, verifikasi bukti bayar (terima/tolak) → trigger kirim otomatis. Klaim garansi: update kredensial di stok |
 | User (Admin only) | Kelola user, jadikan karyawan/reseller |

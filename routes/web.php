@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ProductVariantController;
 use App\Http\Controllers\Admin\StockImportController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +34,14 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
 Route::middleware(['auth', 'role:admin,karyawan'])->prefix('admin')->name('admin.')->group(function () {
+    Route::resource('produk', ProductController::class)
+        ->except('show')
+        ->parameters(['produk' => 'product'])
+        ->names('products');
+    Route::post('/produk/{product}/varian', [ProductVariantController::class, 'store'])->name('variants.store');
+    Route::put('/varian/{variant}', [ProductVariantController::class, 'update'])->name('variants.update');
+    Route::delete('/varian/{variant}', [ProductVariantController::class, 'destroy'])->name('variants.destroy');
+
     Route::get('/stok/import', [StockImportController::class, 'create'])->name('stocks.import');
     Route::post('/stok/import', [StockImportController::class, 'store'])->name('stocks.import.store');
 });

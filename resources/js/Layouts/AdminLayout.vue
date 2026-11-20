@@ -5,7 +5,10 @@ import { computed } from 'vue'
 const page = usePage()
 const user = computed(() => page.props.auth?.user)
 
+const flash = computed(() => page.props.flash ?? {})
+
 const menu = [
+    { label: 'Produk', href: '/admin/produk', icon: 'heroicons:cube' },
     { label: 'Input Stok Massal', href: '/admin/stok/import', icon: 'heroicons:arrow-up-tray' },
 ]
 </script>
@@ -37,7 +40,24 @@ const menu = [
                 <Link href="/" class="text-lg font-bold tracking-tight text-ink lg:hidden">akunhaus</Link>
                 <span class="ml-auto text-sm text-slate-600">{{ user?.name }} &middot; <span class="capitalize">{{ user?.role }}</span></span>
             </header>
+            <nav class="flex gap-1 overflow-x-auto border-b border-slate-200 bg-white px-4 py-2 lg:hidden">
+                <Link
+                    v-for="item in menu"
+                    :key="item.href"
+                    :href="item.href"
+                    class="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium"
+                    :class="page.url.startsWith(item.href) ? 'bg-slate-100 text-ink' : 'text-slate-600'"
+                >
+                    {{ item.label }}
+                </Link>
+            </nav>
             <main class="flex-1 px-4 py-8 lg:px-8">
+                <div v-if="flash.success" class="mx-auto mb-6 max-w-5xl rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status">
+                    {{ flash.success }}
+                </div>
+                <div v-if="flash.error" class="mx-auto mb-6 max-w-5xl rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
+                    {{ flash.error }}
+                </div>
                 <slot />
             </main>
         </div>
