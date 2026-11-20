@@ -1,25 +1,44 @@
 <script setup>
-// Data mock katalog — ponytail: ganti dengan data dari Controller saat backend hidup; warna_banner/warna_teks dari tabel brand
-const produk = [
-    { id: 1, nama: 'Netflix Premium', harga: 25000, harga_asli: 45000, rating: '4.9', jumlah_ulasan: '2.1K', terjual: '12.4K', jenis_akun_label: 'Personal', durasi_label: '1 Bulan', warna_banner: '#7f0f13', warna_teks: '#ffffff' },
-    { id: 2, nama: 'Spotify Premium', harga: 15000, harga_asli: 29000, rating: '4.8', jumlah_ulasan: '1.5K', terjual: '8.9K', jenis_akun_label: 'Personal', durasi_label: '1 Bulan', warna_banner: '#0e5c2f', warna_teks: '#1ed760' },
-    { id: 3, nama: 'ChatGPT Plus', harga: 85000, harga_asli: 120000, rating: '4.8', jumlah_ulasan: '980', terjual: '6.7K', jenis_akun_label: 'Private', durasi_label: '1 Bulan', warna_banner: '#0d7a61', warna_teks: '#ffffff' },
-    { id: 4, nama: 'YouTube Premium', harga: 20000, harga_asli: 35000, rating: '4.9', jumlah_ulasan: '1.3K', terjual: '9.1K', jenis_akun_label: 'Sharing', durasi_label: '1 Bulan', warna_banner: '#ffffff', warna_teks: '#ff0000' },
-    { id: 5, nama: 'Canva Pro', harga: 30000, harga_asli: 59000, rating: '4.8', jumlah_ulasan: '620', terjual: '4.2K', jenis_akun_label: 'Sharing', durasi_label: '1 Tahun', warna_banner: 'linear-gradient(135deg, #7d2ae8, #00c4cc)', warna_teks: '#ffffff' },
-    { id: 6, nama: 'Microsoft 365', harga: 89000, harga_asli: 150000, rating: '4.7', jumlah_ulasan: '540', terjual: '3.1K', jenis_akun_label: 'Personal', durasi_label: '1 Tahun', warna_banner: '#ffffff', warna_teks: '#d83b01' },
-    { id: 7, nama: 'CapCut Pro', harga: 25000, harga_asli: 45000, rating: '4.8', jumlah_ulasan: '430', terjual: '2.9K', jenis_akun_label: 'Personal', durasi_label: '1 Bulan', warna_banner: '#111111', warna_teks: '#ffffff' },
-    { id: 8, nama: 'Google One 200GB', harga: 45000, harga_asli: 75000, rating: '4.8', jumlah_ulasan: '380', terjual: '1.8K', jenis_akun_label: 'Personal', durasi_label: '1 Tahun', warna_banner: '#ffffff', warna_teks: '#4285f4' },
-]
+import { router } from '@inertiajs/vue3'
+import { reactive } from 'vue'
+import { rupiah } from '@/lib/format'
 
-const kategoriFilter = [
-    { label: 'Streaming', count: 12 }, { label: 'AI Tools', count: 9 }, { label: 'Desain', count: 7 }, { label: 'Office', count: 6 }, { label: 'Cloud Storage', count: 5 }, { label: 'Game', count: 4 }, { label: 'Lainnya', count: 8 },
-]
-const durasiFilter = [
-    { label: '1 Bulan', count: 28 }, { label: '3 Bulan', count: 12 }, { label: '6 Bulan', count: 6 }, { label: '1 Tahun', count: 8 },
-]
-const jenisFilter = [
-    { label: 'Personal', count: 24 }, { label: 'Private', count: 18 }, { label: 'Sharing', count: 20 }, { label: 'Upgrade', count: 6 },
-]
+const props = defineProps({
+    produk: { type: Array, required: true },
+    terlaris: { type: Array, required: true },
+    filters: { type: Object, required: true },
+    opsi: { type: Object, required: true },
+})
+
+const f = reactive({
+    q: props.filters.q,
+    kategori: [...props.filters.kategori],
+    jenis: [...props.filters.jenis],
+    durasi: [...props.filters.durasi],
+    harga_max: props.filters.harga_max ?? props.opsi.harga_tertinggi,
+    urut: props.filters.urut,
+})
+
+const apply = () => {
+    const query = { ...f }
+    if (!query.q) delete query.q
+    if (!query.harga_max || query.harga_max >= props.opsi.harga_tertinggi) delete query.harga_max
+    if (query.urut === 'populer') delete query.urut
+    router.get('/', query, { preserveState: true, preserveScroll: true, replace: true, only: ['produk', 'filters'] })
+}
+
+const toggle = (list, value) => {
+    const i = list.indexOf(value)
+    i === -1 ? list.push(value) : list.splice(i, 1)
+    apply()
+}
+
+const reset = () => {
+    Object.assign(f, { q: '', kategori: [], jenis: [], durasi: [], harga_max: props.opsi.harga_tertinggi, urut: 'populer' })
+    apply()
+}
+
+const adaFilter = () => f.q || f.kategori.length || f.jenis.length || f.durasi.length || f.harga_max < props.opsi.harga_tertinggi
 </script>
 
 <template>
@@ -69,30 +88,41 @@ const jenisFilter = [
         </ol>
     </nav>
 
-    <!-- Filter chips -->
+    <!-- Filter cepat: tipe akun + urutan -->
     <div class="border-y border-slate-100 bg-white">
         <div class="mx-auto flex max-w-[1320px] items-center gap-2 overflow-x-auto px-4 py-3.5 lg:px-15">
-            <button v-for="chip in [
-                    { label: 'Kategori', icon: 'heroicons:squares-2x2' },
-                    { label: 'Durasi', icon: 'heroicons:clock' },
-                    { label: 'Jenis Akun', icon: 'heroicons:user-group' },
-                    { label: 'Harga', icon: 'heroicons:currency-dollar' },
-                ]" :key="chip.label" type="button"
-                class="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-slate-200 px-4 text-sm font-medium text-slate-600 transition hover:border-brand-400 hover:text-ink">
-                <Icon :icon="chip.icon" class="h-3.5 w-3.5" />
-                {{ chip.label }}
-                <Icon icon="heroicons:chevron-down" class="h-3.5 w-3.5" />
+            <button
+                v-for="j in opsi.jenis"
+                :key="j.value"
+                type="button"
+                :aria-pressed="f.jenis.includes(j.value)"
+                class="flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition"
+                :class="f.jenis.includes(j.value) ? 'border-ink bg-ink text-white' : 'border-slate-200 text-slate-600 hover:border-slate-400 hover:text-ink'"
+                @click="toggle(f.jenis, j.value)"
+            >
+                <Icon :icon="j.value === 'sharing' ? 'heroicons:user-group' : 'heroicons:user'" class="h-3.5 w-3.5" />
+                {{ j.label }}
             </button>
-            <button type="button" class="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-slate-200 px-4 text-sm font-medium text-slate-600 transition hover:border-brand-400 hover:text-brand-600">
-                <Icon icon="heroicons:funnel" class="h-3.5 w-3.5" />
-                All Filters
+            <button
+                v-for="d in opsi.durasi"
+                :key="d.value"
+                type="button"
+                :aria-pressed="f.durasi.includes(d.value)"
+                class="flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition"
+                :class="f.durasi.includes(d.value) ? 'border-ink bg-ink text-white' : 'border-slate-200 text-slate-600 hover:border-slate-400 hover:text-ink'"
+                @click="toggle(f.durasi, d.value)"
+            >
+                <Icon icon="heroicons:clock" class="h-3.5 w-3.5" />
+                {{ d.label }}
             </button>
-            <div class="ml-auto hidden shrink-0 items-center gap-2 sm:flex">
-                <span class="text-sm text-slate-500">Urutkan</span>
-                <button type="button" class="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3.5 text-sm font-medium text-ink">
-                    Terpopuler
-                    <Icon icon="heroicons:chevron-down" class="h-3.5 w-3.5 text-slate-400" />
-                </button>
+            <div class="ml-auto flex shrink-0 items-center gap-2">
+                <label for="urut" class="text-sm text-slate-500">Urutkan</label>
+                <select id="urut" v-model="f.urut" class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-ink focus:border-slate-400 focus:outline-none" @change="apply">
+                    <option value="populer">Terpopuler</option>
+                    <option value="terbaru">Terbaru</option>
+                    <option value="termurah">Harga terendah</option>
+                    <option value="termahal">Harga tertinggi</option>
+                </select>
             </div>
         </div>
     </div>
@@ -103,38 +133,34 @@ const jenisFilter = [
             <!-- Sidebar filter -->
             <aside class="hidden w-64 shrink-0 lg:block">
                 <div class="sticky top-24 space-y-7">
-                    <fieldset>
+                    <fieldset v-if="opsi.kategori.length">
                         <legend class="text-sm font-semibold text-ink">Kategori</legend>
                         <div class="mt-3 space-y-2.5">
-                            <label v-for="k in kategoriFilter" :key="k.label" class="flex cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink">
+                            <label v-for="k in opsi.kategori" :key="k.value" class="flex cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink">
                                 <span class="flex items-center gap-2.5">
-                                    <input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400" />
+                                    <input type="checkbox" :checked="f.kategori.includes(k.value)" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400" @change="toggle(f.kategori, k.value)" />
                                     {{ k.label }}
                                 </span>
-                                <span class="text-xs text-slate-400">{{ k.count }}</span>
+                                <span class="text-xs text-slate-400">{{ k.jumlah }}</span>
                             </label>
                         </div>
                     </fieldset>
 
-                    <fieldset>
-                        <legend class="text-sm font-semibold text-ink">Rentang Harga</legend>
-                        <div class="mt-4 flex items-center gap-2">
-                            <input type="text" inputmode="numeric" value="Rp 0" aria-label="Harga minimum" class="h-9 w-full rounded-lg border border-slate-200 px-2.5 text-xs text-ink focus:border-slate-400 focus:outline-none" />
-                            <span class="text-slate-400">&ndash;</span>
-                            <input type="text" inputmode="numeric" value="Rp 500.000" aria-label="Harga maksimum" class="h-9 w-full rounded-lg border border-slate-200 px-2.5 text-xs text-ink focus:border-slate-400 focus:outline-none" />
-                        </div>
-                        <input type="range" min="0" max="500000" value="150000" class="mt-3 w-full accent-brand-600" aria-label="Rentang harga maksimum" />
+                    <fieldset v-if="opsi.harga_tertinggi">
+                        <legend class="text-sm font-semibold text-ink">Harga maksimal</legend>
+                        <p class="mt-3 text-sm font-medium text-ink">{{ rupiah(f.harga_max) }}</p>
+                        <input v-model.number="f.harga_max" type="range" min="0" :max="opsi.harga_tertinggi" :step="1000" class="mt-2 w-full accent-brand-600" aria-label="Harga maksimal" @change="apply" />
                     </fieldset>
 
                     <fieldset>
                         <legend class="text-sm font-semibold text-ink">Durasi</legend>
                         <div class="mt-3 space-y-2.5">
-                            <label v-for="d in durasiFilter" :key="d.label" class="flex cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink">
+                            <label v-for="d in opsi.durasi" :key="d.value" class="flex cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink">
                                 <span class="flex items-center gap-2.5">
-                                    <input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400" />
+                                    <input type="checkbox" :checked="f.durasi.includes(d.value)" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400" @change="toggle(f.durasi, d.value)" />
                                     {{ d.label }}
                                 </span>
-                                <span class="text-xs text-slate-400">{{ d.count }}</span>
+                                <span class="text-xs text-slate-400">{{ d.jumlah }}</span>
                             </label>
                         </div>
                     </fieldset>
@@ -142,17 +168,17 @@ const jenisFilter = [
                     <fieldset>
                         <legend class="text-sm font-semibold text-ink">Jenis Akun</legend>
                         <div class="mt-3 space-y-2.5">
-                            <label v-for="j in jenisFilter" :key="j.label" class="flex cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink">
+                            <label v-for="j in opsi.jenis" :key="j.value" class="flex cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink">
                                 <span class="flex items-center gap-2.5">
-                                    <input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400" />
+                                    <input type="checkbox" :checked="f.jenis.includes(j.value)" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400" @change="toggle(f.jenis, j.value)" />
                                     {{ j.label }}
                                 </span>
-                                <span class="text-xs text-slate-400">{{ j.count }}</span>
+                                <span class="text-xs text-slate-400">{{ j.jumlah }}</span>
                             </label>
                         </div>
                     </fieldset>
 
-                    <button type="button" class="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 transition hover:border-brand-400 hover:text-ink">
+                    <button type="button" :disabled="!adaFilter()" class="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 transition hover:border-brand-400 hover:text-ink disabled:opacity-40" @click="reset">
                         <Icon icon="heroicons:arrow-path" class="h-4 w-4" />
                         Reset Filter
                     </button>
@@ -164,17 +190,22 @@ const jenisFilter = [
                 <h2 class="text-2xl font-bold text-ink">Produk Premium untuk Kamu</h2>
                 <p class="mt-1 text-sm text-slate-500">Temukan akun dan layanan digital sesuai kebutuhanmu.</p>
 
-                <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <a v-for="p in produk" :key="p.id" :href="`/produk/${p.id}`" class="block">
-                        <ProductCard :product="p" />
-                    </a>
+                <p v-if="filters.q" class="mt-3 text-sm text-slate-600">Hasil pencarian "<span class="font-semibold text-ink">{{ filters.q }}</span>" &middot; {{ produk.length }} produk</p>
+                <div v-if="produk.length" class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <ProductCard v-for="p in produk" :key="p.id" :product="p" />
+                </div>
+                <div v-else class="mt-10 flex flex-col items-center rounded-2xl border border-dashed border-slate-200 py-14 text-center">
+                    <Icon icon="heroicons:magnifying-glass" class="h-10 w-10 text-slate-300" />
+                    <p class="mt-3 text-sm font-semibold text-ink">Produk tidak ditemukan</p>
+                    <p class="mt-1 text-sm text-slate-500">Coba kata kunci lain atau hapus filter.</p>
+                    <button type="button" class="mt-4 h-10 rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700" @click="reset">Reset Filter</button>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Paling Laris -->
-    <section id="terlaris" class="mx-auto max-w-[1320px] px-4 pb-14 lg:px-15">
+    <section v-if="terlaris.length" id="terlaris" class="mx-auto max-w-[1320px] px-4 pb-14 lg:px-15">
         <div class="flex items-end justify-between">
             <div>
                 <h2 class="text-2xl font-bold text-ink">Paling Laris</h2>
@@ -183,7 +214,7 @@ const jenisFilter = [
             <a href="#katalog" class="shrink-0 text-sm font-semibold text-brand-600 hover:text-brand-700">Lihat Semua &rarr;</a>
         </div>
         <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <ProductCardSmall v-for="p in produk.slice(0, 6)" :key="p.id" :product="p" />
+            <ProductCardSmall v-for="p in terlaris" :key="p.id" :product="p" />
         </div>
     </section>
 
@@ -194,8 +225,8 @@ const jenisFilter = [
             <ol class="mt-6 grid gap-4 sm:grid-cols-3">
                 <li v-for="(langkah, i) in [
                     { judul: 'Pilih produk & durasi', isi: 'Temukan akun premium yang kamu butuhkan, pilih durasi berlangganan.' },
-                    { judul: 'Bayar & upload bukti', isi: 'Transfer ke rekening yang tertera, lalu unggah bukti pembayaran.' },
-                    { judul: 'Kredensial terkirim otomatis', isi: 'Setelah diverifikasi, email & password langsung muncul di Pesanan Saya.' },
+                    { judul: 'Bayar via QRIS atau transfer', isi: 'Scan QRIS dari e-wallet/m-banking, atau transfer bank lalu unggah bukti.' },
+                    { judul: 'Kredensial terkirim otomatis', isi: 'Begitu pembayaran masuk, email & password langsung muncul di Pesanan Saya.' },
                 ]" :key="langkah.judul" class="rounded-2xl border border-slate-200 bg-white p-5">
                     <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">{{ i + 1 }}</span>
                     <h3 class="mt-3 text-sm font-semibold text-ink">{{ langkah.judul }}</h3>

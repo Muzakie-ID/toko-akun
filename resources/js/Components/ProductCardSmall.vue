@@ -1,26 +1,22 @@
 <script setup>
-defineProps({
-    product: { type: Object, required: true },
-})
+import { Link } from '@inertiajs/vue3'
+import { computed } from 'vue'
+import { brandColors } from '@/lib/brand'
+import { angka, rupiah } from '@/lib/format'
 
-const rupiah = (n) => 'Rp ' + Number(n).toLocaleString('id-ID')
+const props = defineProps({ product: { type: Object, required: true } })
+const warna = computed(() => brandColors(props.product.nama))
 </script>
 
 <template>
-    <article class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-brand-300 hover:shadow-sm">
-        <!-- Thumb -->
-        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-lg font-black text-brand-600">
+    <Link :href="`/produk/${product.slug}`" class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-brand-300 hover:shadow-sm">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-lg font-black" :style="{ background: warna.bg, color: warna.fg }">
             {{ product.nama.charAt(0) }}
         </div>
-
         <div class="min-w-0">
             <h3 class="truncate text-sm font-semibold text-ink">{{ product.nama }}</h3>
-            <p class="mt-0.5 text-sm font-bold text-brand-600">{{ rupiah(product.harga) }}</p>
-            <div class="mt-1 flex items-center gap-1 text-xs text-slate-500">
-                <Icon icon="heroicons:star-solid" class="h-3 w-3 text-amber-400" />
-                <span class="font-medium text-ink">{{ product.rating }}</span>
-                <span>{{ product.terjual }} terjual</span>
-            </div>
+            <p class="mt-0.5 text-sm font-bold text-ink">{{ rupiah(product.harga) }}</p>
+            <p class="mt-0.5 text-xs text-slate-500">{{ angka(product.terjual) }} terjual</p>
         </div>
-    </article>
+    </Link>
 </template>

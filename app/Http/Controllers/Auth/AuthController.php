@@ -21,14 +21,30 @@ class AuthController extends Controller
 {
     public function showLogin(Request $request): Response
     {
+        $this->rememberReturnPath($request);
+
         return Inertia::render('Auth/Login', [
             'status' => $request->session()->get('status', ''),
         ]);
     }
 
-    public function showRegister(): Response
+    public function showRegister(Request $request): Response
     {
+        $this->rememberReturnPath($request);
+
         return Inertia::render('Auth/Register');
+    }
+
+    /**
+     * Simpan ?kembali=/produk/x sebagai tujuan setelah login. Hanya path lokal agar tidak jadi open redirect.
+     */
+    private function rememberReturnPath(Request $request): void
+    {
+        $path = (string) $request->query('kembali', '');
+
+        if (str_starts_with($path, '/') && ! str_starts_with($path, '//') && ! str_contains($path, '\\')) {
+            $request->session()->put('url.intended', url($path));
+        }
     }
 
     public function login(Request $request): RedirectResponse

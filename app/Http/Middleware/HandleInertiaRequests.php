@@ -25,13 +25,11 @@ class HandleInertiaRequests extends Middleware
             'auth' => fn () => $request->user()
                 ? ['user' => ['id' => $request->user()->id, 'name' => $request->user()->name, 'role' => $request->user()->role]]
                 : null,
-            'cart_count' => fn () => 0,
+            'cart_count' => fn () => (int) $request->user()?->cartItems()->sum('qty'),
             'flash' => fn () => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
             ],
-            // ponytail: dibutuhkan form logout native di Navbar; Inertia form otomatis via cookie XSRF
-            'csrf_token' => fn () => csrf_token(),
         ];
     }
 }

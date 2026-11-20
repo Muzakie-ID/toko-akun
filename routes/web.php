@@ -10,19 +10,26 @@ use App\Http\Controllers\Admin\StockController;
 use App\Http\Controllers\Admin\StockImportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\QrismuzWebhookController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-// ponytail: frontend-first — semua halaman mock tanpa DB, ganti Controller + data asli saat backend
-Route::get('/', fn () => Inertia::render('Catalog'))->name('home');
-Route::get('/produk/{id}', fn (string $id) => Inertia::render('ProductDetail', ['id' => (int) $id]))
-    ->whereNumber('id')
-    ->name('product.detail');
-Route::get('/keranjang', fn () => Inertia::render('Cart'))->name('cart');
-Route::get('/pesanan', fn () => Inertia::render('Orders'))->middleware('auth')->name('orders');
-Route::get('/pesanan/{order}', [OrderController::class, 'show'])->middleware('auth')->name('orders.show');
+Route::get('/', [CatalogController::class, 'index'])->name('home');
+Route::get('/produk/{product:slug}', [CatalogController::class, 'show'])->name('product.detail');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/keranjang', [CartController::class, 'index'])->name('cart');
+    Route::post('/keranjang', [CartController::class, 'store'])->name('cart.store');
+    Route::patch('/keranjang/{item}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/keranjang/{item}', [CartController::class, 'destroy'])->name('cart.destroy');
+    Route::post('/checkout', [CartController::class, 'checkout'])->middleware('throttle:10,1')->name('checkout');
+
+    Route::get('/pesanan', [OrderController::class, 'index'])->name('orders');
+    Route::get('/pesanan/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('/pesanan/{order}/bukti', [OrderController::class, 'uploadProof'])->middleware('throttle:10,1')->name('orders.proof');
+});
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

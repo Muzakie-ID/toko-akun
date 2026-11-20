@@ -1,115 +1,98 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { Head, Link, router, useForm } from '@inertiajs/vue3'
+import { computed } from 'vue'
+import { brandColors } from '@/lib/brand'
+import { rupiah } from '@/lib/format'
 
-// ponytail: mock keranjang & checkout — state lokal, ganti ke Inertia form saat backend hidup
-const items = ref([
-    { id: 1, nama: 'Netflix Premium', durasi_label: '1 Bulan', jenis_akun_label: 'Personal', harga: 25000, qty: 1 },
-    { id: 5, nama: 'Canva Pro', durasi_label: '1 Tahun', jenis_akun_label: 'Sharing', harga: 10000, qty: 2 },
-])
+const props = defineProps({
+    items: { type: Array, required: true },
+    metode: { type: Array, required: true },
+})
 
-const buktiBayar = ref(null)
-const fileName = ref('')
+const form = useForm({ metode_bayar: props.metode[0]?.value ?? '' })
 
-const subtotal = computed(() => items.value.reduce((t, i) => t + i.harga * i.qty, 0))
-const total = computed(() => subtotal.value)
+const subtotal = computed(() => props.items.reduce((t, i) => t + i.harga * i.qty, 0))
+const jumlahAkun = computed(() => props.items.reduce((t, i) => t + i.qty, 0))
+const adaMasalahStok = computed(() => props.items.some((i) => i.qty > i.stok))
 
-const rupiah = (n) => 'Rp ' + Number(n).toLocaleString('id-ID')
-
-const tambah = (item) => item.qty++
-const kurang = (item) => {
-    if (item.qty > 1) item.qty--
+const ubahQty = (item, qty) => {
+    if (qty < 1 || qty > Math.max(item.stok, 1)) return
+    router.patch(`/keranjang/${item.id}`, { qty }, { preserveScroll: true, preserveState: true })
 }
-const hapus = (item) => {
-    items.value = items.value.filter((i) => i.id !== item.id)
-}
-const pilihFile = (e) => {
-    const f = e.target.files?.[0]
-    if (f) fileName.value = f.name
-}
+const hapus = (item) => router.delete(`/keranjang/${item.id}`, { preserveScroll: true })
+const checkout = () => form.post('/checkout')
 </script>
 
 <template>
     <section class="mx-auto max-w-[1320px] px-4 py-8 lg:px-15">
+        <Head title="Keranjang" />
         <h1 class="text-2xl font-bold text-ink">Keranjang &amp; Checkout</h1>
 
         <div v-if="items.length" class="mt-6 grid gap-8 lg:grid-cols-[1fr_380px]">
-            <!-- Item list -->
             <div class="space-y-3">
-                <article
-                    v-for="item in items"
-                    :key="item.id"
-                    class="flex flex-wrap items-center gap-4 rounded-2xl border border-slate-200 p-4"
-                >
-                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-xl font-black text-brand-600">
+                <article v-for="item in items" :key="item.id" class="flex flex-wrap items-center gap-4 rounded-2xl border p-4" :class="item.qty > item.stok ? 'border-rose-200 bg-rose-50/40' : 'border-slate-200'">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl font-black" :style="{ background: brandColors(item.nama).bg, color: brandColors(item.nama).fg }">
                         {{ item.nama.charAt(0) }}
                     </div>
                     <div class="min-w-0 flex-1">
-                        <h2 class="text-sm font-semibold text-ink">{{ item.nama }}</h2>
+                        <Link :href="`/produk/${item.slug}`" class="text-sm font-semibold text-ink hover:underline">{{ item.nama }}</Link>
                         <p class="mt-0.5 text-xs text-slate-500">{{ item.jenis_akun_label }} &bull; {{ item.durasi_label }}</p>
-                        <p class="mt-1 text-sm font-bold text-brand-600">{{ rupiah(item.harga) }}</p>
+                        <p class="mt-1 text-sm font-bold text-ink">{{ rupiah(item.harga) }}</p>
+                        <p v-if="item.qty > item.stok" class="mt-1 text-xs font-medium text-rose-600">{{ item.stok ? `Stok tinggal ${item.stok}, kurangi jumlahnya.` : 'Stok habis, hapus dari keranjang.' }}</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button type="button" class="h-8 w-8 rounded-lg border border-slate-200 text-slate-600 hover:border-brand-400 hover:text-brand-600" :aria-label="`Kurangi ${item.nama}`" @click="kurang(item)">&minus;</button>
+                        <button type="button" class="h-8 w-8 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="item.qty <= 1" :aria-label="`Kurangi ${item.nama}`" @click="ubahQty(item, item.qty - 1)">&minus;</button>
                         <span class="w-8 text-center text-sm font-semibold text-ink" aria-live="polite">{{ item.qty }}</span>
-                        <button type="button" class="h-8 w-8 rounded-lg border border-slate-200 text-slate-600 hover:border-brand-400 hover:text-brand-600" :aria-label="`Tambah ${item.nama}`" @click="tambah(item)">+</button>
+                        <button type="button" class="h-8 w-8 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="item.qty >= item.stok" :aria-label="`Tambah ${item.nama}`" @click="ubahQty(item, item.qty + 1)">+</button>
                     </div>
                     <div class="w-24 text-right text-sm font-bold text-ink">{{ rupiah(item.harga * item.qty) }}</div>
                     <button type="button" class="text-slate-400 transition hover:text-rose-500" :aria-label="`Hapus ${item.nama}`" @click="hapus(item)">
                         <Icon icon="heroicons:trash" class="h-5 w-5" />
                     </button>
                 </article>
+                <p class="text-xs text-slate-500">Setiap akun dikirim terpisah. Beli 2 = dapat 2 akun/slot berbeda.</p>
             </div>
 
-            <!-- Ringkasan + pembayaran -->
-            <aside class="space-y-4">
+            <form class="space-y-4" @submit.prevent="checkout">
                 <div class="rounded-2xl border border-slate-200 p-5">
-                    <h2 class="text-sm font-semibold text-ink">Ringkasan Pesanan</h2>
-                    <dl class="mt-3 space-y-2 text-sm">
-                        <div class="flex justify-between text-slate-600">
-                            <dt>Subtotal ({{ items.reduce((t, i) => t + i.qty, 0) }} item)</dt>
-                            <dd class="font-medium text-ink">{{ rupiah(subtotal) }}</dd>
-                        </div>
-                        <div class="flex justify-between border-t border-slate-100 pt-2 text-base font-bold text-ink">
-                            <dt>Total</dt>
-                            <dd>{{ rupiah(total) }}</dd>
-                        </div>
-                    </dl>
+                    <h2 class="text-sm font-semibold text-ink">Metode Pembayaran</h2>
+                    <div v-if="metode.length" class="mt-3 space-y-2" role="radiogroup">
+                        <label v-for="m in metode" :key="m.value" class="flex cursor-pointer gap-3 rounded-xl border p-3 transition" :class="form.metode_bayar === m.value ? 'border-ink bg-slate-50 ring-1 ring-ink' : 'border-slate-200 hover:border-slate-400'">
+                            <input v-model="form.metode_bayar" type="radio" name="metode" :value="m.value" class="mt-0.5 h-4 w-4 text-brand-600" />
+                            <span>
+                                <span class="flex items-center gap-1.5 text-sm font-semibold text-ink">
+                                    <Icon :icon="m.value === 'qris' ? 'heroicons:qr-code' : 'heroicons:building-library'" class="h-4 w-4" /> {{ m.label }}
+                                </span>
+                                <span class="mt-0.5 block text-xs leading-5 text-slate-500">{{ m.keterangan }}</span>
+                            </span>
+                        </label>
+                    </div>
+                    <p v-else class="mt-2 text-sm text-rose-600">Pembayaran sedang tidak tersedia. Hubungi admin.</p>
+                    <p v-if="form.errors.metode_bayar" class="mt-2 text-xs text-rose-600">{{ form.errors.metode_bayar }}</p>
                 </div>
 
                 <div class="rounded-2xl border border-slate-200 p-5">
-                    <h2 class="text-sm font-semibold text-ink">Pembayaran Manual</h2>
-                    <p class="mt-1.5 text-xs leading-5 text-slate-500">
-                        Transfer ke <span class="font-semibold text-ink">BCA 1234567890 a.n. Akunhaus</span>,
-                        lalu unggah bukti pembayaran. Kredensial dikirim otomatis setelah diverifikasi.
-                    </p>
-                    <label
-                        class="mt-3 flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-slate-200 px-4 py-6 text-center transition hover:border-brand-400 hover:bg-brand-50/50"
-                    >
-                        <Icon icon="heroicons:arrow-up-tray" class="h-6 w-6 text-slate-400" />
-                        <span class="text-sm font-medium text-brand-600">Unggah Bukti Bayar</span>
-                        <span v-if="fileName" class="text-xs text-slate-500">{{ fileName }}</span>
-                        <span v-else class="text-xs text-slate-400">PNG, JPG maks. 2MB</span>
-                        <input type="file" accept="image/png,image/jpeg" class="sr-only" @change="pilihFile" />
-                    </label>
-                    <button
-                        type="button"
-                        :disabled="!buktiBayar && !fileName"
-                        class="mt-3 h-11 w-full rounded-xl bg-brand-600 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                        Kirim Pesanan
+                    <h2 class="text-sm font-semibold text-ink">Ringkasan</h2>
+                    <dl class="mt-3 space-y-2 text-sm">
+                        <div class="flex justify-between text-slate-600"><dt>Subtotal ({{ jumlahAkun }} akun)</dt><dd class="font-medium text-ink">{{ rupiah(subtotal) }}</dd></div>
+                        <div v-if="form.metode_bayar === 'qris'" class="flex justify-between text-xs text-slate-500"><dt>Kode unik QRIS</dt><dd>+ Rp 1–999</dd></div>
+                        <div class="flex justify-between border-t border-slate-100 pt-2 text-base font-bold text-ink"><dt>Total</dt><dd>{{ rupiah(subtotal) }}</dd></div>
+                    </dl>
+                    <ul v-if="form.errors.checkout" class="mt-3 space-y-1 text-xs text-rose-600">
+                        <li>{{ form.errors.checkout }}</li>
+                    </ul>
+                    <button type="submit" :disabled="form.processing || !metode.length || adaMasalahStok" class="mt-4 h-11 w-full rounded-xl bg-brand-600 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40">
+                        {{ form.processing ? 'Membuat pesanan…' : 'Bayar Sekarang' }}
                     </button>
                 </div>
-            </aside>
+            </form>
         </div>
 
-        <!-- Kosong -->
         <div v-else class="mt-16 flex flex-col items-center text-center">
             <Icon icon="heroicons:shopping-cart" class="h-12 w-12 text-slate-300" />
             <p class="mt-4 text-sm font-semibold text-ink">Keranjang masih kosong</p>
             <p class="mt-1 text-sm text-slate-500">Yuk pilih produk premium favoritmu.</p>
-            <a href="/" class="mt-4 inline-flex h-10 items-center rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700">
-                Lihat Produk
-            </a>
+            <Link href="/" class="mt-4 inline-flex h-10 items-center rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700">Lihat Produk</Link>
         </div>
     </section>
 </template>
