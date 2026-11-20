@@ -30,30 +30,33 @@ const checkout = () => form.post('/checkout')
 <template>
     <section class="mx-auto max-w-[1320px] px-4 py-8 lg:px-15">
         <Head title="Keranjang" />
-        <h1 class="text-2xl font-bold text-ink">Keranjang &amp; Checkout</h1>
+        <h1 class="text-xl font-bold text-ink sm:text-2xl">Keranjang &amp; Checkout</h1>
 
-        <div v-if="items.length" class="mt-6 grid gap-8 lg:grid-cols-[1fr_380px]">
+        <div v-if="items.length" class="mt-5 grid gap-6 sm:mt-6 lg:grid-cols-[1fr_380px] lg:gap-8">
             <div class="space-y-3">
-                <article v-for="item in items" :key="item.id" class="flex flex-wrap items-center gap-4 rounded-2xl border p-4" :class="item.qty > item.stok ? 'border-rose-200 bg-rose-50/40' : 'border-slate-200'">
-                    <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl text-xl font-black" :style="{ background: brandColors(item.nama).bg, color: brandColors(item.nama).fg }">
-                        <img v-if="item.logo_url" :src="item.logo_url" alt="" class="h-8 w-8 object-contain" />
-                        <template v-else>{{ item.nama.charAt(0) }}</template>
+                <article v-for="item in items" :key="item.id" class="rounded-2xl border p-4" :class="item.qty > item.stok ? 'border-rose-200 bg-rose-50/40' : 'border-slate-200'">
+                    <div class="flex items-start gap-3 sm:gap-4">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl text-xl font-black" :style="{ background: brandColors(item.nama).bg, color: brandColors(item.nama).fg }">
+                            <img v-if="item.logo_url" :src="item.logo_url" alt="" class="h-8 w-8 object-contain" />
+                            <template v-else>{{ item.nama.charAt(0) }}</template>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <Link :href="`/produk/${item.slug}`" class="text-sm font-semibold text-ink hover:underline">{{ item.nama }}</Link>
+                            <p class="mt-0.5 text-xs text-slate-500">{{ item.jenis_akun_label }} &bull; {{ item.durasi_label }} &bull; {{ rupiah(item.harga) }}</p>
+                            <p v-if="item.qty > item.stok" class="mt-1 text-xs font-medium text-rose-600">{{ item.stok ? `Stok tinggal ${item.stok}, kurangi jumlahnya.` : 'Stok habis, hapus dari keranjang.' }}</p>
+                        </div>
+                        <button type="button" class="-mt-2 -mr-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-500" :aria-label="`Hapus ${item.nama}`" @click="hapus(item)">
+                            <Icon icon="heroicons:trash" class="h-5 w-5" />
+                        </button>
                     </div>
-                    <div class="min-w-0 flex-1">
-                        <Link :href="`/produk/${item.slug}`" class="text-sm font-semibold text-ink hover:underline">{{ item.nama }}</Link>
-                        <p class="mt-0.5 text-xs text-slate-500">{{ item.jenis_akun_label }} &bull; {{ item.durasi_label }}</p>
-                        <p class="mt-1 text-sm font-bold text-ink">{{ rupiah(item.harga) }}</p>
-                        <p v-if="item.qty > item.stok" class="mt-1 text-xs font-medium text-rose-600">{{ item.stok ? `Stok tinggal ${item.stok}, kurangi jumlahnya.` : 'Stok habis, hapus dari keranjang.' }}</p>
+                    <div class="mt-3 flex items-center justify-between gap-3 sm:pl-16">
+                        <div class="flex items-center gap-2">
+                            <button type="button" class="h-10 w-10 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="item.qty <= 1" :aria-label="`Kurangi ${item.nama}`" @click="ubahQty(item, item.qty - 1)">&minus;</button>
+                            <span class="w-8 text-center text-sm font-semibold text-ink" aria-live="polite">{{ item.qty }}</span>
+                            <button type="button" class="h-10 w-10 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="item.qty >= item.stok" :aria-label="`Tambah ${item.nama}`" @click="ubahQty(item, item.qty + 1)">+</button>
+                        </div>
+                        <p class="text-base font-bold text-ink">{{ rupiah(item.harga * item.qty) }}</p>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button type="button" class="h-8 w-8 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="item.qty <= 1" :aria-label="`Kurangi ${item.nama}`" @click="ubahQty(item, item.qty - 1)">&minus;</button>
-                        <span class="w-8 text-center text-sm font-semibold text-ink" aria-live="polite">{{ item.qty }}</span>
-                        <button type="button" class="h-8 w-8 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="item.qty >= item.stok" :aria-label="`Tambah ${item.nama}`" @click="ubahQty(item, item.qty + 1)">+</button>
-                    </div>
-                    <div class="w-24 text-right text-sm font-bold text-ink">{{ rupiah(item.harga * item.qty) }}</div>
-                    <button type="button" class="text-slate-400 transition hover:text-rose-500" :aria-label="`Hapus ${item.nama}`" @click="hapus(item)">
-                        <Icon icon="heroicons:trash" class="h-5 w-5" />
-                    </button>
                 </article>
                 <p class="text-xs text-slate-500">Setiap akun dikirim terpisah. Beli 2 = dapat 2 akun/slot berbeda.</p>
             </div>

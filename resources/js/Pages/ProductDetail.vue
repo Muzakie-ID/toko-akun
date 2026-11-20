@@ -12,6 +12,8 @@ const props = defineProps({
     ulasan: { type: Object, required: true },
 })
 
+const semuaUlasan = ref(false)
+const ulasanTampil = computed(() => (semuaUlasan.value ? props.ulasan.daftar : props.ulasan.daftar.slice(0, 6)))
 const maxSebaran = computed(() => Math.max(...props.ulasan.sebaran.map((s) => s.jumlah), 1))
 const toggleWishlist = () => {
     if (!user.value) {
@@ -72,12 +74,12 @@ const beli = (beliSekarang) => {
 
         <section class="mx-auto max-w-[1320px] px-4 pb-14 lg:px-15">
             <div class="grid gap-8 lg:grid-cols-2">
-                <div class="relative flex h-72 items-center justify-center rounded-3xl sm:h-96" :style="{ background: warna.bg }">
+                <div class="relative flex h-56 items-center justify-center rounded-3xl sm:h-96" :style="{ background: warna.bg }">
                     <img v-if="produk.logo_url" :src="produk.logo_url" :alt="`Logo ${produk.nama}`" class="h-32 w-32 rounded-3xl object-contain" />
                     <span v-else class="text-8xl font-black" :style="{ color: warna.fg }">{{ produk.nama.charAt(0) }}</span>
                     <button
                         type="button"
-                        class="absolute top-4 right-4 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-sm font-medium backdrop-blur"
+                        class="absolute top-3 right-3 flex h-10 items-center gap-1.5 rounded-full bg-white/90 px-3.5 text-sm font-medium backdrop-blur sm:top-4 sm:right-4"
                         :class="produk.di_wishlist ? 'text-rose-600' : 'text-slate-700 hover:text-rose-600'"
                         :aria-pressed="produk.di_wishlist"
                         @click="toggleWishlist"
@@ -88,7 +90,7 @@ const beli = (beliSekarang) => {
                 </div>
 
                 <div>
-                    <h1 class="text-3xl font-bold tracking-tight text-ink">{{ produk.nama }}</h1>
+                    <h1 class="text-2xl font-bold tracking-tight text-ink sm:text-3xl">{{ produk.nama }}</h1>
                     <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500">
                         <a v-if="produk.jumlah_ulasan > 0" href="#ulasan" class="inline-flex items-center gap-1 hover:text-ink">
                             <Icon icon="heroicons:star-solid" class="h-4 w-4 text-amber-400" />
@@ -153,19 +155,19 @@ const beli = (beliSekarang) => {
                                     <p class="text-2xl font-bold text-ink">{{ rupiah(terpilih.harga * qty) }}</p>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <button type="button" class="h-9 w-9 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="qty <= 1" aria-label="Kurangi jumlah" @click="qty--">&minus;</button>
+                                    <button type="button" class="h-10 w-10 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="qty <= 1" aria-label="Kurangi jumlah" @click="qty--">&minus;</button>
                                     <span class="w-8 text-center text-sm font-semibold text-ink" aria-live="polite">{{ qty }}</span>
-                                    <button type="button" class="h-9 w-9 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="qty >= terpilih.stok" aria-label="Tambah jumlah" @click="qty++">+</button>
+                                    <button type="button" class="h-10 w-10 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40" :disabled="qty >= terpilih.stok" aria-label="Tambah jumlah" @click="qty++">+</button>
                                 </div>
                             </div>
                             <p class="mt-2 text-xs" :class="terpilih.stok ? 'text-emerald-700' : 'text-rose-600'">
                                 {{ terpilih.stok ? `Stok tersedia: ${terpilih.stok}` : 'Stok sedang habis' }}
                             </p>
                             <div class="mt-4 flex flex-col gap-2.5 sm:flex-row">
-                                <button type="button" :disabled="!terpilih.stok || processing" class="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-brand-600 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-40" @click="beli(true)">
+                                <button type="button" :disabled="!terpilih.stok || processing" class="flex h-12 w-full shrink-0 sm:flex-1 items-center justify-center gap-2 rounded-xl bg-brand-600 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-40" @click="beli(true)">
                                     <Icon icon="heroicons:bolt" class="h-4 w-4" /> Beli Sekarang
                                 </button>
-                                <button type="button" :disabled="!terpilih.stok || processing" class="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-brand-600 text-sm font-semibold text-ink transition hover:bg-slate-50 disabled:opacity-40" @click="beli(false)">
+                                <button type="button" :disabled="!terpilih.stok || processing" class="flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-xl border sm:flex-1 border-brand-600 text-sm font-semibold text-ink transition hover:bg-slate-50 disabled:opacity-40" @click="beli(false)">
                                     <Icon icon="heroicons:shopping-bag" class="h-4 w-4" /> Masukkan Keranjang
                                 </button>
                             </div>
@@ -176,7 +178,7 @@ const beli = (beliSekarang) => {
                 </div>
             </div>
             <!-- Ulasan -->
-            <div id="ulasan" class="mt-14 scroll-mt-24">
+            <div id="ulasan" class="mt-10 scroll-mt-24 sm:mt-14">
                 <h2 class="text-xl font-bold text-ink">Ulasan Pembeli</h2>
                 <div v-if="produk.jumlah_ulasan" class="mt-4 grid gap-8 lg:grid-cols-[260px_1fr]">
                     <div>
@@ -193,13 +195,18 @@ const beli = (beliSekarang) => {
                         </ul>
                     </div>
                     <ul class="grid gap-3 md:grid-cols-2">
-                        <li v-for="u in ulasan.daftar" :key="u.id" class="rounded-2xl border border-slate-200 p-4">
+                        <li v-for="u in ulasanTampil" :key="u.id" class="rounded-2xl border border-slate-200 p-4">
                             <div class="flex items-center justify-between gap-2">
                                 <span class="text-sm font-semibold text-ink">{{ u.nama }}</span>
                                 <span class="text-xs text-slate-400">{{ u.tanggal }}</span>
                             </div>
                             <StarRating :model-value="u.rating" size="h-3.5 w-3.5" class="mt-1" />
                             <p v-if="u.komentar" class="mt-2 text-sm leading-6 text-slate-600">{{ u.komentar }}</p>
+                        </li>
+                        <li v-if="ulasan.daftar.length > ulasanTampil.length" class="md:col-span-2">
+                            <button type="button" class="h-11 w-full rounded-xl border border-slate-200 text-sm font-semibold text-ink hover:bg-slate-50" @click="semuaUlasan = true">
+                                Tampilkan {{ ulasan.daftar.length - ulasanTampil.length }} ulasan lainnya
+                            </button>
                         </li>
                     </ul>
                 </div>

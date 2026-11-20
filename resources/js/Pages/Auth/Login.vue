@@ -15,7 +15,7 @@ const submit = () => form.post('/login', { onFinish: () => form.reset('password'
         {{ status }}
     </div>
 
-        <h1 class="text-2xl font-bold text-ink">Masuk ke Akunhaus</h1>
+        <h1 class="text-xl font-bold text-ink sm:text-2xl">Masuk ke Akunhaus</h1>
         <p class="mt-1.5 text-sm text-slate-500">Belum punya akun?
             <Link href="/register" class="font-semibold text-ink underline underline-offset-2 hover:text-gold">Daftar</Link>
         </p>
@@ -50,7 +50,7 @@ const submit = () => form.post('/login', { onFinish: () => form.reset('password'
 
             <div class="mt-4 flex items-center justify-between">
                 <label class="block text-sm font-medium text-ink" for="password">Password</label>
-                <Link href="/lupa-password" class="text-xs font-medium text-slate-500 hover:text-ink">Lupa password?</Link>
+                <Link href="/lupa-password" class="-my-2 py-2 text-xs font-medium text-slate-500 hover:text-ink">Lupa password?</Link>
             </div>
             <input
                 id="password"

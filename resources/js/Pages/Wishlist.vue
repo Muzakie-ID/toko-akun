@@ -8,7 +8,7 @@ defineProps({ produk: { type: Array, required: true } })
 <template>
     <section class="mx-auto max-w-[1320px] px-4 py-8 lg:px-15">
         <Head title="Wishlist" />
-        <h1 class="text-2xl font-bold text-ink">Wishlist</h1>
+        <h1 class="text-xl font-bold text-ink sm:text-2xl">Wishlist</h1>
         <p class="mt-1 text-sm text-slate-500">Produk yang kamu simpan untuk dibeli nanti.</p>
 
         <div v-if="produk.length" class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

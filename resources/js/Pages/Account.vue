@@ -17,7 +17,7 @@ const logout = () => router.post('/logout')
         <Head title="Akun Saya" />
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-ink">Akun Saya</h1>
+                <h1 class="text-xl font-bold text-ink sm:text-2xl">Akun Saya</h1>
                 <p class="mt-1 text-sm text-slate-500">
                     Bergabung {{ akun.bergabung }}
                     <span v-if="akun.role === 'reseller'" class="ml-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-xs font-semibold text-amber-700">Reseller</span>

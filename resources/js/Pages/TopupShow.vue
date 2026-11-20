@@ -33,11 +33,11 @@ const sisa = computed(() => {
 <template>
     <section class="mx-auto max-w-[560px] px-4 py-8">
         <Head :title="`Top-up ${topup.invoice}`" />
-        <Link href="/saldo" class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-ink">
+        <Link href="/saldo" class="-my-2 inline-flex items-center gap-1 py-2 text-sm text-slate-500 hover:text-ink">
             <Icon icon="heroicons:arrow-left" class="h-4 w-4" /> Saldo
         </Link>
         <div class="mt-2 flex flex-wrap items-center gap-3">
-            <h1 class="text-2xl font-bold text-ink">Top-up {{ rupiah(topup.jumlah) }}</h1>
+            <h1 class="text-xl font-bold text-ink sm:text-2xl">Top-up {{ rupiah(topup.jumlah) }}</h1>
             <StatusBadge :tone="topup.status_tone" :label="topup.status_label" />
         </div>
         <p class="mt-1 text-sm text-slate-500">{{ topup.invoice }}</p>

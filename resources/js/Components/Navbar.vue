@@ -1,6 +1,6 @@
 <script setup>
 import { Link, router, usePage } from '@inertiajs/vue3'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const page = usePage()
 const search = ref(new URLSearchParams(page.url.split('?')[1] ?? '').get('q') ?? '')
@@ -10,6 +10,7 @@ const logout = () => router.post('/logout')
 const cartCount = computed(() => page.props.cart_count ?? 0)
 const user = computed(() => page.props.auth?.user)
 const mobileOpen = ref(false)
+watch(() => page.url, () => (mobileOpen.value = false))
 
 const navLinks = [
     { label: 'Kategori', href: '/#katalog', hasChevron: true },
@@ -22,7 +23,7 @@ const navLinks = [
     <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
         <nav class="mx-auto flex h-[72px] max-w-[1320px] items-center gap-6 px-4 lg:px-15">
             <!-- Logo -->
-            <Link href="/" class="flex shrink-0 items-center gap-2">
+            <Link href="/" class="flex h-10 shrink-0 items-center gap-2">
                 <Icon icon="heroicons:building-storefront-solid" class="h-6 w-6 text-brand-900" />
                 <span class="text-lg font-bold tracking-tight text-ink">akunhaus</span>
             </Link>
@@ -67,17 +68,17 @@ const navLinks = [
                         Rp {{ Number(user.saldo ?? 0).toLocaleString('id-ID') }}
                         <Icon v-if="user.harga_reseller" icon="heroicons:sparkles-solid" class="h-3.5 w-3.5 text-amber-500" aria-label="Harga reseller aktif" />
                     </Link>
-                    <Link href="/wishlist" class="flex items-center rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 hover:text-ink" aria-label="Wishlist">
+                    <Link href="/wishlist" class="hidden h-10 w-10 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-ink sm:flex" aria-label="Wishlist">
                         <Icon icon="heroicons:heart" class="h-5 w-5" />
                     </Link>
                     <Link href="/pesanan" class="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink md:block">
                         Pesanan
                     </Link>
-                    <Link href="/akun" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink" aria-label="Akun Saya">
+                    <Link href="/akun" class="hidden h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink sm:flex" aria-label="Akun Saya">
                         <Icon icon="heroicons:user" class="h-5 w-5" />
                         <span class="hidden sm:inline">{{ user.name.split(' ')[0] }}</span>
                     </Link>
-                    <button type="button" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink" aria-label="Keluar" @click="logout">
+                    <button type="button" class="hidden h-10 w-10 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-ink sm:flex" aria-label="Keluar" @click="logout">
                         <Icon icon="heroicons:arrow-right-start-on-rectangle" class="h-5 w-5" />
                     </button>
                 </template>
@@ -90,7 +91,7 @@ const navLinks = [
                     </Link>
                 </template>
 
-                <Link href="/keranjang" class="relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink" aria-label="Keranjang">
+                <Link href="/keranjang" class="relative flex h-10 items-center gap-2 rounded-lg px-2.5 text-sm sm:px-3 font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink" aria-label="Keranjang">
                     <span class="relative">
                         <Icon icon="heroicons:shopping-cart" class="h-5 w-5" />
                         <span
@@ -103,9 +104,11 @@ const navLinks = [
 
                 <!-- Mobile menu toggle -->
                 <button
-                    class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden"
-                    @click="mobileOpen = !mobileOpen"
+                    type="button"
+                    class="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 md:hidden"
+                    :aria-expanded="mobileOpen"
                     aria-label="Menu"
+                    @click="mobileOpen = !mobileOpen"
                 >
                     <Icon :icon="mobileOpen ? 'heroicons:x-mark' : 'heroicons:bars-3'" class="h-5 w-5" />
                 </button>
@@ -113,27 +116,39 @@ const navLinks = [
         </nav>
 
         <!-- Mobile panel -->
-        <div v-if="mobileOpen" class="border-t border-slate-200 px-4 py-3 md:hidden">
+        <div v-if="mobileOpen" class="max-h-[calc(100vh-72px)] overflow-y-auto border-t border-slate-200 px-4 pt-3 pb-4 md:hidden">
             <form role="search" @submit.prevent="cari">
-                <label class="mb-2 flex h-10 items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4">
+                <label class="flex h-11 items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4">
                     <Icon icon="heroicons:magnifying-glass" class="h-4.5 w-4.5 text-slate-400" />
                     <input v-model="search" type="search" aria-label="Cari produk" placeholder="Cari produk..." class="w-full bg-transparent text-sm focus:outline-none" />
                 </label>
             </form>
-            <template v-if="!user">
-                <Link href="/login" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Masuk</Link>
-                <Link href="/register" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Daftar</Link>
-            </template>
-            <template v-else>
-                <Link href="/pesanan" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Pesanan Saya</Link>
-                <Link href="/saldo" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Saldo · Rp {{ Number(user.saldo ?? 0).toLocaleString('id-ID') }}</Link>
-                <Link href="/wishlist" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Wishlist</Link>
-                <Link href="/akun" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Akun Saya</Link>
-                <Link v-if="isStaff" href="/admin" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Panel Admin</Link>
-            </template>
-            <Link v-for="link in navLinks" :key="link.label" :href="link.href" class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">
-                {{ link.label }}
-            </Link>
+            <div v-if="user" class="mt-3 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2.5">
+                <span class="text-sm">
+                    <span class="block font-semibold text-ink">{{ user.name }}</span>
+                    <Link href="/saldo" class="text-xs text-slate-500">Saldo Rp {{ Number(user.saldo ?? 0).toLocaleString('id-ID') }}<span v-if="user.harga_reseller" class="ml-1 font-semibold text-amber-600">· harga reseller</span></Link>
+                </span>
+                <Link href="/saldo" class="flex h-9 items-center rounded-lg bg-ink px-3 text-xs font-semibold text-white">Top-up</Link>
+            </div>
+            <nav class="mt-2 grid" aria-label="Menu">
+                <template v-if="!user">
+                    <Link href="/login" class="flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100"><Icon icon="heroicons:arrow-right-end-on-rectangle" class="h-5 w-5 text-slate-400" />Masuk</Link>
+                    <Link href="/register" class="flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100"><Icon icon="heroicons:user-plus" class="h-5 w-5 text-slate-400" />Daftar</Link>
+                </template>
+                <template v-else>
+                    <Link href="/pesanan" class="flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100"><Icon icon="heroicons:shopping-bag" class="h-5 w-5 text-slate-400" />Pesanan Saya</Link>
+                    <Link href="/wishlist" class="flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100"><Icon icon="heroicons:heart" class="h-5 w-5 text-slate-400" />Wishlist</Link>
+                    <Link href="/akun" class="flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100"><Icon icon="heroicons:user" class="h-5 w-5 text-slate-400" />Akun Saya</Link>
+                    <Link v-if="isStaff" href="/admin" class="flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100"><Icon icon="heroicons:squares-2x2" class="h-5 w-5 text-slate-400" />Panel Admin</Link>
+                </template>
+                <span class="my-1 border-t border-slate-100" />
+                <Link v-for="link in navLinks" :key="link.label" :href="link.href" class="flex h-11 items-center rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                    {{ link.label }}
+                </Link>
+                <button v-if="user" type="button" class="flex h-11 items-center gap-3 rounded-lg px-3 text-left text-sm font-medium text-rose-600 hover:bg-rose-50" @click="logout">
+                    <Icon icon="heroicons:arrow-right-start-on-rectangle" class="h-5 w-5" />Keluar
+                </button>
+            </nav>
         </div>
     </header>
 </template>

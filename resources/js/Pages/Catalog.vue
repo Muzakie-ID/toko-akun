@@ -1,6 +1,6 @@
 <script setup>
 import { router } from '@inertiajs/vue3'
-import { reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { rupiah } from '@/lib/format'
 
 const props = defineProps({
@@ -39,6 +39,10 @@ const reset = () => {
 }
 
 const adaFilter = () => f.q || f.kategori.length || f.jenis.length || f.durasi.length || f.harga_max < props.opsi.harga_tertinggi
+
+// Di HP, sidebar filter dibuka sebagai panel bawah
+const filterOpen = ref(false)
+const jumlahFilter = computed(() => f.kategori.length + f.jenis.length + f.durasi.length + (f.harga_max < props.opsi.harga_tertinggi ? 1 : 0))
 </script>
 
 <template>
@@ -90,13 +94,22 @@ const adaFilter = () => f.q || f.kategori.length || f.jenis.length || f.durasi.l
 
     <!-- Filter cepat: tipe akun + urutan -->
     <div class="border-y border-slate-100 bg-white">
-        <div class="mx-auto flex max-w-[1320px] items-center gap-2 overflow-x-auto px-4 py-3.5 lg:px-15">
+        <div class="mx-auto flex max-w-[1320px] items-center gap-2 overflow-x-auto px-4 py-3 lg:px-15 lg:py-3.5">
+            <button
+                type="button"
+                class="flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-ink bg-ink px-4 text-sm font-medium text-white lg:hidden"
+                :aria-expanded="filterOpen"
+                @click="filterOpen = true"
+            >
+                <Icon icon="heroicons:adjustments-horizontal" class="h-4 w-4" />
+                Filter<span v-if="jumlahFilter"> ({{ jumlahFilter }})</span>
+            </button>
             <button
                 v-for="j in opsi.jenis"
                 :key="j.value"
                 type="button"
                 :aria-pressed="f.jenis.includes(j.value)"
-                class="flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition"
+                class="flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition lg:h-9"
                 :class="f.jenis.includes(j.value) ? 'border-ink bg-ink text-white' : 'border-slate-200 text-slate-600 hover:border-slate-400 hover:text-ink'"
                 @click="toggle(f.jenis, j.value)"
             >
@@ -108,14 +121,14 @@ const adaFilter = () => f.q || f.kategori.length || f.jenis.length || f.durasi.l
                 :key="d.value"
                 type="button"
                 :aria-pressed="f.durasi.includes(d.value)"
-                class="flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition"
+                class="flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition lg:h-9"
                 :class="f.durasi.includes(d.value) ? 'border-ink bg-ink text-white' : 'border-slate-200 text-slate-600 hover:border-slate-400 hover:text-ink'"
                 @click="toggle(f.durasi, d.value)"
             >
                 <Icon icon="heroicons:clock" class="h-3.5 w-3.5" />
                 {{ d.label }}
             </button>
-            <div class="ml-auto flex shrink-0 items-center gap-2">
+            <div class="ml-auto hidden shrink-0 items-center gap-2 lg:flex">
                 <label for="urut" class="text-sm text-slate-500">Urutkan</label>
                 <select id="urut" v-model="f.urut" class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-ink focus:border-slate-400 focus:outline-none" @change="apply">
                     <option value="populer">Terpopuler</option>
@@ -131,12 +144,34 @@ const adaFilter = () => f.q || f.kategori.length || f.jenis.length || f.durasi.l
     <section id="katalog" class="mx-auto max-w-[1320px] px-4 py-8 lg:px-15">
         <div class="flex gap-8">
             <!-- Sidebar filter -->
-            <aside class="hidden w-64 shrink-0 lg:block">
-                <div class="sticky top-24 space-y-7">
+            <div v-if="filterOpen" class="fixed inset-0 z-40 bg-slate-900/40 lg:hidden" @click="filterOpen = false" />
+            <aside
+                class="w-64 shrink-0 lg:block"
+                :class="filterOpen ? 'fixed inset-x-0 bottom-0 z-50 block max-h-[85vh] w-full overflow-y-auto rounded-t-3xl bg-white px-5 pt-4 pb-6 shadow-2xl' : 'hidden'"
+                :role="filterOpen ? 'dialog' : undefined"
+                :aria-modal="filterOpen ? 'true' : undefined"
+                aria-label="Filter produk"
+            >
+                <div class="mb-4 flex items-center justify-between lg:hidden">
+                    <h2 class="text-base font-semibold text-ink">Filter &amp; Urutkan</h2>
+                    <button type="button" class="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100" aria-label="Tutup filter" @click="filterOpen = false">
+                        <Icon icon="heroicons:x-mark" class="h-5 w-5" />
+                    </button>
+                </div>
+                <div class="space-y-7 lg:sticky lg:top-24">
+                    <fieldset class="lg:hidden">
+                        <legend class="text-sm font-semibold text-ink">Urutkan</legend>
+                        <select v-model="f.urut" aria-label="Urutkan" class="mt-3 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-ink focus:border-slate-400 focus:outline-none" @change="apply">
+                            <option value="populer">Terpopuler</option>
+                            <option value="terbaru">Terbaru</option>
+                            <option value="termurah">Harga terendah</option>
+                            <option value="termahal">Harga tertinggi</option>
+                        </select>
+                    </fieldset>
                     <fieldset v-if="opsi.kategori.length">
                         <legend class="text-sm font-semibold text-ink">Kategori</legend>
-                        <div class="mt-3 space-y-2.5">
-                            <label v-for="k in opsi.kategori" :key="k.value" class="flex cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink">
+                        <div class="mt-2 space-y-0.5 lg:mt-3 lg:space-y-2.5">
+                            <label v-for="k in opsi.kategori" :key="k.value" class="flex min-h-9 cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink lg:min-h-0">
                                 <span class="flex items-center gap-2.5">
                                     <input type="checkbox" :checked="f.kategori.includes(k.value)" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400" @change="toggle(f.kategori, k.value)" />
                                     {{ k.label }}
@@ -154,8 +189,8 @@ const adaFilter = () => f.q || f.kategori.length || f.jenis.length || f.durasi.l
 
                     <fieldset>
                         <legend class="text-sm font-semibold text-ink">Durasi</legend>
-                        <div class="mt-3 space-y-2.5">
-                            <label v-for="d in opsi.durasi" :key="d.value" class="flex cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink">
+                        <div class="mt-2 space-y-0.5 lg:mt-3 lg:space-y-2.5">
+                            <label v-for="d in opsi.durasi" :key="d.value" class="flex min-h-9 cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink lg:min-h-0">
                                 <span class="flex items-center gap-2.5">
                                     <input type="checkbox" :checked="f.durasi.includes(d.value)" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400" @change="toggle(f.durasi, d.value)" />
                                     {{ d.label }}
@@ -167,8 +202,8 @@ const adaFilter = () => f.q || f.kategori.length || f.jenis.length || f.durasi.l
 
                     <fieldset>
                         <legend class="text-sm font-semibold text-ink">Jenis Akun</legend>
-                        <div class="mt-3 space-y-2.5">
-                            <label v-for="j in opsi.jenis" :key="j.value" class="flex cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink">
+                        <div class="mt-2 space-y-0.5 lg:mt-3 lg:space-y-2.5">
+                            <label v-for="j in opsi.jenis" :key="j.value" class="flex min-h-9 cursor-pointer items-center justify-between gap-2.5 text-sm text-slate-600 hover:text-ink lg:min-h-0">
                                 <span class="flex items-center gap-2.5">
                                     <input type="checkbox" :checked="f.jenis.includes(j.value)" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400" @change="toggle(f.jenis, j.value)" />
                                     {{ j.label }}
@@ -178,10 +213,15 @@ const adaFilter = () => f.q || f.kategori.length || f.jenis.length || f.durasi.l
                         </div>
                     </fieldset>
 
-                    <button type="button" :disabled="!adaFilter()" class="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 transition hover:border-brand-400 hover:text-ink disabled:opacity-40" @click="reset">
-                        <Icon icon="heroicons:arrow-path" class="h-4 w-4" />
-                        Reset Filter
-                    </button>
+                    <div class="flex gap-2">
+                        <button type="button" :disabled="!adaFilter()" class="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 transition hover:border-brand-400 hover:text-ink disabled:opacity-40 lg:h-10" @click="reset">
+                            <Icon icon="heroicons:arrow-path" class="h-4 w-4" />
+                            Reset Filter
+                        </button>
+                        <button type="button" class="h-11 flex-1 rounded-xl bg-brand-600 text-sm font-semibold text-white lg:hidden" @click="filterOpen = false">
+                            Lihat {{ produk.length }} produk
+                        </button>
+                    </div>
                 </div>
             </aside>
 
@@ -211,7 +251,7 @@ const adaFilter = () => f.q || f.kategori.length || f.jenis.length || f.durasi.l
                 <h2 class="text-2xl font-bold text-ink">Paling Laris</h2>
                 <p class="mt-1 text-sm text-slate-500">Produk yang paling banyak dibeli oleh pelanggan kami.</p>
             </div>
-            <a href="#katalog" class="shrink-0 text-sm font-semibold text-brand-600 hover:text-brand-700">Lihat Semua &rarr;</a>
+            <a href="#katalog" class="-my-2 shrink-0 py-2 text-sm font-semibold text-brand-600 hover:text-brand-700">Lihat Semua &rarr;</a>
         </div>
         <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             <ProductCardSmall v-for="p in terlaris" :key="p.id" :product="p" />

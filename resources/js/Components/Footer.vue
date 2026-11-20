@@ -1,41 +1,47 @@
 <script setup>
-import { Link } from '@inertiajs/vue3'
+import { Link, usePage } from '@inertiajs/vue3'
+import { computed } from 'vue'
 
 const year = new Date().getFullYear()
+const user = computed(() => usePage().props.auth?.user)
 
-const columns = [
+const columns = computed(() => [
     {
         title: 'Produk',
         links: [
             { label: 'Semua Produk', href: '/' },
-            { label: 'Streaming', href: '/?kategori=streaming' },
-            { label: 'AI Tools', href: '/?kategori=ai-tools' },
-            { label: 'Deals', href: '/#terlaris' },
+            { label: 'Streaming', href: '/?kategori[]=streaming' },
+            { label: 'AI Tools', href: '/?kategori[]=ai-tools' },
+            { label: 'Paling Laris', href: '/#terlaris' },
         ],
     },
     {
         title: 'Bantuan',
         links: [
             { label: 'Cara Order', href: '/#cara-order' },
-            { label: 'Kebijakan Garansi', href: '/#garansi' },
-            { label: 'FAQ', href: '/#faq' },
+            { label: 'Top-up Saldo', href: '/saldo' },
         ],
     },
     {
         title: 'Akun',
-        links: [
-            { label: 'Masuk', href: '/login' },
-            { label: 'Daftar', href: '/register' },
-            { label: 'Pesanan Saya', href: '/pesanan' },
-        ],
+        links: user.value
+            ? [
+                { label: 'Akun Saya', href: '/akun' },
+                { label: 'Pesanan Saya', href: '/pesanan' },
+                { label: 'Wishlist', href: '/wishlist' },
+            ]
+            : [
+                { label: 'Masuk', href: '/login' },
+                { label: 'Daftar', href: '/register' },
+            ],
     },
-]
+])
 </script>
 
 <template>
     <footer class="border-t border-slate-200 bg-white">
-        <div class="mx-auto grid max-w-[1320px] gap-10 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4 lg:px-15">
-            <div>
+        <div class="mx-auto grid max-w-[1320px] grid-cols-2 gap-x-6 gap-y-8 px-4 py-10 sm:gap-10 sm:py-12 lg:grid-cols-4 lg:px-15">
+            <div class="col-span-2 lg:col-span-1">
                 <Link href="/" class="flex items-center gap-2">
                     <Icon icon="heroicons:building-storefront-solid" class="h-6 w-6 text-brand-900" />
                     <span class="text-lg font-bold tracking-tight text-ink">akunhaus</span>
@@ -47,9 +53,9 @@ const columns = [
 
             <nav v-for="col in columns" :key="col.title" :aria-label="col.title">
                 <h3 class="text-sm font-semibold text-ink">{{ col.title }}</h3>
-                <ul class="mt-3 space-y-2">
+                <ul class="mt-2 sm:mt-3 sm:space-y-2">
                     <li v-for="link in col.links" :key="link.label">
-                        <Link :href="link.href" class="text-sm text-slate-500 transition hover:text-brand-600">{{ link.label }}</Link>
+                        <Link :href="link.href" class="block py-1.5 text-sm text-slate-500 transition hover:text-brand-600 sm:py-0">{{ link.label }}</Link>
                     </li>
                 </ul>
             </nav>

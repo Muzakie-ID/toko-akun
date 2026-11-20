@@ -29,7 +29,7 @@ const diskon = computed(() => {
             <span v-else class="text-5xl font-black" :style="{ color: warna.fg }">{{ product.nama.charAt(0) }}</span>
             <button
                 type="button"
-                class="absolute top-3 right-3 z-10 rounded-full bg-white/85 p-1.5 backdrop-blur transition hover:scale-110"
+                class="absolute top-2 right-2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/85 backdrop-blur transition hover:scale-110"
                 :class="product.di_wishlist ? 'text-rose-500' : 'text-slate-500 hover:text-rose-500'"
                 :aria-label="product.di_wishlist ? `Hapus ${product.nama} dari wishlist` : `Simpan ${product.nama} ke wishlist`"
                 :aria-pressed="product.di_wishlist"

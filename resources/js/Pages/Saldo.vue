@@ -24,7 +24,7 @@ const kirim = () => form.post('/saldo/topup')
 <template>
     <section class="mx-auto max-w-[1000px] px-4 py-8 lg:px-15">
         <Head title="Saldo" />
-        <h1 class="text-2xl font-bold text-ink">Saldo</h1>
+        <h1 class="text-xl font-bold text-ink sm:text-2xl">Saldo</h1>
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
             <div class="rounded-2xl bg-ink p-5 text-white">
@@ -50,7 +50,7 @@ const kirim = () => form.post('/saldo/topup')
                     </div>
                     <p v-if="kurangKeReseller > 0" class="mt-2 text-xs text-slate-600">
                         Kurang {{ rupiah(kurangKeReseller) }}.
-                        <button v-if="topup.tersedia" type="button" class="font-semibold text-brand-600 underline" @click="topupKeReseller">Isi nominalnya</button>
+                        <button v-if="topup.tersedia" type="button" class="-my-2 inline-block py-2 font-semibold text-brand-600 underline" @click="topupKeReseller">Isi nominalnya</button>
                     </p>
                 </template>
                 <p v-else class="mt-2 text-sm text-slate-600">Harga reseller hanya untuk akun yang ditetapkan admin.</p>
@@ -62,7 +62,7 @@ const kirim = () => form.post('/saldo/topup')
             <h2 class="text-base font-semibold text-ink">Top-up via QRIS</h2>
             <template v-if="topup.tersedia">
                 <div class="mt-3 flex flex-wrap gap-2">
-                    <button v-for="p in presets" :key="p" type="button" class="h-9 rounded-full border px-4 text-sm font-medium transition" :class="Number(form.jumlah) === p ? 'border-ink bg-ink text-white' : 'border-slate-200 text-slate-600 hover:border-slate-400'" @click="form.jumlah = p">
+                    <button v-for="p in presets" :key="p" type="button" class="h-10 rounded-full border px-4 text-sm font-medium transition" :class="Number(form.jumlah) === p ? 'border-ink bg-ink text-white' : 'border-slate-200 text-slate-600 hover:border-slate-400'" @click="form.jumlah = p">
                         {{ rupiah(p) }}
                     </button>
                 </div>

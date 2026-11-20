@@ -18,7 +18,7 @@ defineProps({
             role="radio"
             :aria-checked="model === n"
             :aria-label="`${n} bintang`"
-            class="rounded transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none"
+            class="rounded p-1.5 transition hover:scale-110 focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none"
             @click="model = n"
         >
             <Icon icon="heroicons:star-solid" :class="[size, n <= model ? 'text-amber-400' : 'text-slate-200']" />
