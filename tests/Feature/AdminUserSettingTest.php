@@ -67,7 +67,7 @@ class AdminUserSettingTest extends TestCase
             'qris_enabled' => true, 'qris_base_url' => 'https://qris.test/', 'qris_api_key' => 'qm_live_1',
             'qris_webhook_secret' => 'whsec_1', 'qris_expiry_min' => 15,
             'manual_enabled' => true, 'manual_rekening' => [['bank' => 'BCA', 'nomor' => '123', 'nama' => 'Akunhaus']],
-            'manual_batas_jam' => 24,
+            'manual_batas_jam' => 24, 'reseller_otomatis' => true, 'reseller_min_belanja' => 1000000,
             ...$overrides,
         ];
     }

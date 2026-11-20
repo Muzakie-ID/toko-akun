@@ -139,6 +139,26 @@ const err = (key) => form.errors[key]
                 </div>
             </section>
 
+            <!-- Reseller otomatis -->
+            <section class="rounded-2xl bg-white p-5 ring-1 ring-slate-200/70">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <h2 class="text-base font-semibold text-ink">Reseller otomatis</h2>
+                        <p class="mt-1 text-sm text-slate-500">Customer otomatis naik menjadi reseller (dapat harga reseller) begitu total belanja lunasnya mencapai batas ini.</p>
+                    </div>
+                    <label class="flex cursor-pointer items-center gap-2 text-sm font-medium text-ink">
+                        <input v-model="form.reseller_otomatis" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-accent-600" />
+                        Aktifkan
+                    </label>
+                </div>
+                <div class="mt-4 max-w-xs">
+                    <label class="text-sm font-medium text-ink" for="r-min">Minimal total belanja (Rp)</label>
+                    <input id="r-min" v-model="form.reseller_min_belanja" type="number" min="1000" step="1000" required class="mt-1.5 h-10 w-full rounded-xl bg-white px-3 text-sm text-ink ring-1 ring-slate-200 focus:ring-2 focus:ring-accent-300 focus:outline-none" />
+                    <p v-if="err('reseller_min_belanja')" class="mt-1 text-xs text-rose-600">{{ err('reseller_min_belanja') }}</p>
+                    <p v-else class="mt-1 text-xs text-slate-500">Dihitung dari pesanan lunas (refund tidak dihitung). Role tidak pernah diturunkan otomatis.</p>
+                </div>
+            </section>
+
             <div class="sticky bottom-4 flex justify-end">
                 <button type="submit" :disabled="form.processing" class="h-11 rounded-xl bg-accent-600 px-6 text-sm font-semibold text-white shadow-lg shadow-accent-600/20 hover:bg-accent-700 disabled:opacity-50">
                     {{ form.processing ? 'Menyimpan…' : 'Simpan Pengaturan' }}

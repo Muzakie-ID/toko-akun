@@ -1,7 +1,16 @@
 <script setup>
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
+import { computed } from 'vue'
+import { rupiah } from '@/lib/format'
 
-const props = defineProps({ akun: { type: Object, required: true } })
+const props = defineProps({
+    akun: { type: Object, required: true },
+    menujuReseller: { type: Object, default: null },
+})
+
+const persenReseller = computed(() =>
+    props.menujuReseller ? Math.min(100, Math.round((props.menujuReseller.total_belanja / props.menujuReseller.batas) * 100)) : 0,
+)
 
 const profil = useForm({ name: props.akun.name, email: props.akun.email })
 const password = useForm({ current_password: '', password: '', password_confirmation: '' })
@@ -36,6 +45,21 @@ const logout = () => router.post('/logout')
                 <Icon icon="heroicons:heart" class="h-6 w-6 text-slate-400" />
                 <span><span class="block text-sm font-semibold text-ink">Wishlist</span><span class="text-xs text-slate-500">{{ akun.jumlah_wishlist }} produk tersimpan</span></span>
             </Link>
+        </div>
+
+        <div v-if="menujuReseller" class="mt-4 rounded-2xl border border-amber-200 bg-amber-50/60 p-5">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 class="flex items-center gap-1.5 text-sm font-semibold text-ink">
+                    <Icon icon="heroicons:sparkles" class="h-4 w-4 text-amber-600" /> Menuju Reseller
+                </h2>
+                <p class="text-sm text-slate-600"><b class="text-ink">{{ rupiah(menujuReseller.total_belanja) }}</b> / {{ rupiah(menujuReseller.batas) }}</p>
+            </div>
+            <div class="mt-3 h-2.5 overflow-hidden rounded-full bg-white ring-1 ring-amber-200" role="progressbar" :aria-valuenow="persenReseller" aria-valuemin="0" aria-valuemax="100" aria-label="Progres menuju reseller">
+                <div class="h-full rounded-full bg-amber-500 transition-all" :style="{ width: `${persenReseller}%` }" />
+            </div>
+            <p class="mt-2 text-xs text-slate-600">
+                Belanja {{ rupiah(Math.max(menujuReseller.batas - menujuReseller.total_belanja, 0)) }} lagi untuk otomatis jadi Reseller dan dapat harga lebih murah.
+            </p>
         </div>
 
         <form class="mt-6 rounded-2xl border border-slate-200 p-5" @submit.prevent="simpanProfil">

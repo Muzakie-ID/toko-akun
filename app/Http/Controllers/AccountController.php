@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
+use App\Enums\UserRole;
+use App\Services\ResellerPromotion;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -13,9 +15,10 @@ use Inertia\Response;
 
 class AccountController extends Controller
 {
-    public function edit(Request $request): Response
+    public function edit(Request $request, ResellerPromotion $promotion): Response
     {
         $user = $request->user();
+        $showProgress = $promotion->isEnabled() && $user->role === UserRole::Customer;
 
         return Inertia::render('Account', [
             'akun' => [
@@ -28,6 +31,10 @@ class AccountController extends Controller
                 'jumlah_pesanan' => $user->orders()->whereIn('status', OrderStatus::paidStatuses())->count(),
                 'jumlah_wishlist' => $user->wishlists()->count(),
             ],
+            'menujuReseller' => $showProgress ? [
+                'total_belanja' => $promotion->totalSpent($user),
+                'batas' => $promotion->threshold(),
+            ] : null,
         ]);
     }
 

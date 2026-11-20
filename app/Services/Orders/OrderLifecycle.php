@@ -11,6 +11,7 @@ use App\Models\StockSlot;
 use App\Notifications\OrderDelivered;
 use App\Services\Payment\PaymentGatewayException;
 use App\Services\Payment\QrismuzClient;
+use App\Services\ResellerPromotion;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -20,7 +21,10 @@ use Illuminate\Support\Facades\Log;
  */
 class OrderLifecycle
 {
-    public function __construct(private QrismuzClient $qrismuz) {}
+    public function __construct(
+        private QrismuzClient $qrismuz,
+        private ResellerPromotion $resellerPromotion,
+    ) {}
 
     /**
      * Tandai lunas lalu kirim kredensial. Aman dipanggil berulang (webhook bisa terkirim dua kali).
@@ -49,7 +53,14 @@ class OrderLifecycle
 
         $order->refresh();
 
-        return $updated ? $this->fulfill($order) : $order;
+        if (! $updated) {
+            return $order;
+        }
+
+        $order = $this->fulfill($order);
+        $this->resellerPromotion->promoteIfEligible($order->user);
+
+        return $order;
     }
 
     /**

@@ -16,7 +16,7 @@ Marketplace jual-beli akun premium (Netflix, Spotify, ChatGPT, Canva, dst). Cust
 | **Karyawan** | Panel admin **terbatas**: kelola produk, stok kredensial, verifikasi pembayaran. Tidak bisa kelola user/role/pengaturan |
 | **Admin** | Semua akses: user & role, produk, stok, order, laporan, pengaturan |
 
-Registrasi terbuka untuk Customer & Reseller (pilih role saat daftar). Karyawan dibuat oleh Admin dari panel.
+Registrasi selalu sebagai Customer. Customer **otomatis naik menjadi Reseller** begitu total belanja lunasnya ≥ batas di Pengaturan (default Rp1.000.000); admin juga bisa mengubah role manual. Karyawan dibuat oleh Admin dari panel.
 
 ## 3. Model Data (ERD)
 
@@ -126,7 +126,7 @@ Catatan:
 ## 7. Keputusan
 
 1. Garansi → **klaim manual**: admin perbarui kredensial di stok, pembeli lihat otomatis.
-2. Reseller → **level harga** (lebih murah), aktif sejak register. Multi-level nanti bila perlu.
+2. Reseller → **level harga** (lebih murah), didapat otomatis saat total belanja lunas ≥ Rp1.000.000 (bisa diubah/dimatikan di Pengaturan). Dicek setiap pesanan lunas + command harian `resellers:promote`; tidak pernah diturunkan otomatis. Multi-level nanti bila perlu.
 3. Tipe akun **private/sharing** → pilihan varian yang ditentukan admin; sharing lewat multi-slot dengan info per slot.
 5. Durasi bebas dalam hari; stok terpisah per durasi.
 4. Review & rating → **masuk MVP**.

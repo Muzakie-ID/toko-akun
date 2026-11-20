@@ -27,6 +27,8 @@ class Settings
         'manual.enabled' => true,
         'manual.rekening' => [],
         'manual.batas_jam' => 24,
+        'reseller.otomatis' => true,
+        'reseller.min_belanja' => 1000000,
     ];
 
     /** @var array<string, mixed>|null */
