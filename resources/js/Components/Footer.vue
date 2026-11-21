@@ -20,6 +20,7 @@ const columns = computed(() => [
         links: [
             { label: 'Cara Order', href: '/#cara-order' },
             { label: 'Top-up Saldo', href: '/saldo' },
+            { label: 'Syarat & Ketentuan', href: '/syarat-ketentuan' },
         ],
     },
     {

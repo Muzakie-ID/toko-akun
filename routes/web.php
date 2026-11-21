@@ -20,11 +20,13 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\QrismuzWebhookController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SaldoController;
+use App\Http\Controllers\TermsController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [CatalogController::class, 'index'])->name('home');
 Route::get('/produk/{product:slug}', [CatalogController::class, 'show'])->name('product.detail');
+Route::get('/syarat-ketentuan', TermsController::class)->name('terms');
 
 Route::middleware('auth')->group(function () {
     Route::get('/keranjang', [CartController::class, 'index'])->name('cart');

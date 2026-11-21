@@ -31,7 +31,7 @@ const submit = () => form.post('/register')
             <UiInput v-model="form.password_confirmation" label="Konfirmasi Password" type="password" required autocomplete="new-password" />
             <UiButton type="submit" block :loading="form.processing">Daftar</UiButton>
             <p class="text-center text-xs leading-5 text-slate-400">
-                Dengan mendaftar, kamu menyetujui syarat &amp; ketentuan serta kebijakan privasi Akunhaus.
+                Dengan mendaftar, kamu menyetujui <Link href="/syarat-ketentuan" class="font-medium text-slate-600 underline underline-offset-2 hover:text-ink">syarat &amp; ketentuan serta kebijakan privasi</Link> Akunhaus.
             </p>
         </form>
     </div>
