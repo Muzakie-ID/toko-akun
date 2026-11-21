@@ -2,38 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Saldo\ResellerStatus;
 use App\Services\Settings;
+use App\Services\TermsContent;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class TermsController extends Controller
 {
     /**
-     * Syarat & ketentuan; angka batas waktu, top-up, dan reseller mengikuti Pengaturan admin.
+     * Syarat & ketentuan yang diedit admin; placeholder diisi nilai dari Pengaturan.
      */
-    public function __invoke(Settings $settings, ResellerStatus $resellerStatus): Response
+    public function __invoke(TermsContent $terms, Settings $settings): Response
     {
         return Inertia::render('Terms', [
-            'toko' => [
-                'nama' => $settings->get('store.nama'),
-                'whatsapp' => $settings->get('store.whatsapp') ?: null,
-            ],
-            'pembayaran' => [
-                'qris' => $settings->qrisReady(),
-                'qris_menit' => (int) $settings->get('qris.expiry_min'),
-                'manual' => $settings->manualReady(),
-                'manual_jam' => (int) $settings->get('manual.batas_jam'),
-            ],
-            'topup' => [
-                'min' => (int) $settings->get('topup.min'),
-                'max' => (int) $settings->get('topup.max'),
-            ],
-            'reseller' => [
-                'otomatis' => $resellerStatus->isEnabled(),
-                'batas' => $resellerStatus->threshold(),
-            ],
-            'diperbarui' => '21 November 2026',
+            ...$terms->rendered(),
+            'whatsapp' => $settings->get('store.whatsapp') ?: null,
         ]);
     }
 }

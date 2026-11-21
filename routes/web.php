@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StockController;
 use App\Http\Controllers\Admin\StockImportController;
+use App\Http\Controllers\Admin\TermsController as AdminTermsController;
 use App\Http\Controllers\Admin\TopupController as AdminTopupController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
@@ -124,5 +125,8 @@ Route::middleware(['auth', 'role:admin,karyawan'])->prefix('admin')->name('admin
         Route::get('/pengaturan', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('/pengaturan', [SettingController::class, 'update'])->name('settings.update');
         Route::post('/pengaturan/tes-qris', [SettingController::class, 'testQris'])->name('settings.test-qris');
+
+        Route::get('/syarat-ketentuan', [AdminTermsController::class, 'edit'])->name('terms.edit');
+        Route::put('/syarat-ketentuan', [AdminTermsController::class, 'update'])->name('terms.update');
     });
 });

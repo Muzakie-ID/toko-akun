@@ -114,6 +114,7 @@ Catatan:
 | Top-up Saldo | **Sudah dibuat** (`/admin/topup`): daftar top-up + total masuk bulan ini. Penyesuaian saldo di halaman Pengguna (admin) |
 | User (Admin only) | **Sudah dibuat** (`/admin/pengguna`): ubah role, buat akun karyawan/admin |
 | Pengaturan (Admin only) | **Sudah dibuat** (`/admin/pengaturan`): toko & target, QRIS qris-muz, rekening transfer manual |
+| Syarat & Ketentuan (Admin only) | **Sudah dibuat** (`/admin/syarat-ketentuan`): edit pembuka + bagian (judul, ikon, isi), urutkan, pratinjau, kembalikan teks bawaan. Format: `- ` poin, `**tebal**`. Placeholder (`{nama_toko}`, `{batas_qris_menit}`, `{batas_manual_jam}`, `{topup_min}`, `{topup_max}`, `{saldo_reseller}`) diisi dari Pengaturan. Halaman publik `/syarat-ketentuan`, ditautkan dari Daftar & footer |
 
 ## 6. Scope
 

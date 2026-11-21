@@ -33,6 +33,7 @@ const sections = computed(() => [
             title: 'Toko',
             items: [
                 { label: 'Pengguna', href: '/admin/pengguna', icon: 'heroicons:users' },
+                { label: 'Syarat & Ketentuan', href: '/admin/syarat-ketentuan', icon: 'heroicons:document-text' },
                 { label: 'Pengaturan', href: '/admin/pengaturan', icon: 'heroicons:cog-6-tooth' },
             ],
         }]

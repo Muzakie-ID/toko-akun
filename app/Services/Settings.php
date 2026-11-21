@@ -49,7 +49,7 @@ class Settings
     public function set(array $values): void
     {
         foreach ($values as $key => $value) {
-            $stored = json_encode($value);
+            $stored = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
             if (in_array($key, self::SECRET_KEYS, true)) {
                 $stored = Crypt::encryptString($stored);
